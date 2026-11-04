@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AURA BioLabs — Longevity Clinic</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f1f3f5;--ink:#1b2128;--mute:#66707a;--line:rgba(110,120,130,.4);--cer:#35c6ff;--cer2:#1d6fa8;--navy:#0d2c4a;--ease:cubic-bezier(.2,.7,.2,1)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:70px}
+body{font-family:Montserrat,Arial,sans-serif;background:var(--bg);color:var(--ink);overflow-x:hidden;line-height:1.5}
+a{color:inherit;text-decoration:none}button,input,select{font-family:inherit;color:inherit}
+main,footer{position:relative;z-index:2}
+section{position:relative;padding:120px 6vw}
+.wrap{max-width:1240px;margin:0 auto}
+.micro{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#7b848c;font-weight:500}
+.glass{background:rgba(247,248,250,.66);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.85)}
+
+#tris{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.t{position:absolute;opacity:0;clip-path:polygon(50% 0,0 100%,100% 100%);animation:triA 8s ease-in-out infinite}
+.t.dn{clip-path:polygon(0 0,100% 0,50% 100%)}
+.t.b{animation-name:triB;animation-duration:12s}
+.t.w{background:linear-gradient(135deg,#fff,#dfe4e8)}
+.t.g{background:linear-gradient(135deg,#9aa4ae,#6f7a85)}
+.t.c{background:linear-gradient(135deg,#8fdcff,#2a8fd0)}
+@keyframes triA{0%,100%{opacity:0;transform:translate(0,0)}50%{opacity:.4;transform:translate(var(--sx),var(--sy))}}
+@keyframes triB{0%,100%{opacity:0;transform:translate(0,0)}50%{opacity:.32;transform:translate(var(--sx),var(--sy))}}
+
+.rules{position:relative;height:8px;margin-bottom:44px;max-width:900px}
+.rules i{position:absolute;top:3px;height:1px;background:#8d959d}
+.rules i:nth-child(1){left:0;width:46%}.rules i:nth-child(2){left:50%;width:32%}
+.title{font-weight:200;text-transform:uppercase;line-height:1.04;font-size:clamp(46px,9vw,128px);text-shadow:1.5px 1.5px 0 rgba(0,0,0,.13)}
+.title.sm{font-size:clamp(38px,6vw,84px)}
+.lead{font-weight:300;font-size:clamp(16px,1.5vw,20px);line-height:1.8;color:#444c54;max-width:600px;margin-top:26px}
+
+.tabs{display:flex;flex-wrap:wrap;gap:16px}
+.tab{position:relative;display:inline-flex;align-items:center;min-width:170px;height:46px;padding:0 24px;border:0;background:none;cursor:pointer;font:500 11px/1 Montserrat,sans-serif;letter-spacing:.17em;text-transform:uppercase;color:#e7ebef}
+.tab span{position:relative;z-index:2}
+.tab i{position:absolute;inset:0;background:linear-gradient(90deg,#4a5059,#282e36);clip-path:polygon(0 0,100% 0,calc(100% - 14px) 100%,0 100%);transition:all .45s var(--ease)}
+.tab.on i{background:linear-gradient(100deg,var(--navy),var(--cer2) 52%,var(--navy));clip-path:polygon(0 0,100% 0,100% 100%,0 100%)}
+.tab.on{color:#fff}
+.tab.on::after{content:"";position:absolute;left:6%;right:6%;bottom:-16px;height:22px;background:radial-gradient(ellipse,rgba(53,198,255,.8),transparent 70%);filter:blur(5px)}
+.live{display:inline-flex;align-items:center;gap:8px}
+.live::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--cer);box-shadow:0 0 10px var(--cer)}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:50;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 6vw;background:rgba(241,243,245,.6);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--line)}
+.logo{font-weight:500;letter-spacing:.3em;font-size:12px;text-transform:uppercase}
+.navlinks{display:flex;gap:34px}
+.navlinks a{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:#59616a;font-weight:500}
+.navcta{font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;font-weight:600;color:#fff;padding:11px 20px;background:linear-gradient(100deg,var(--navy),var(--cer2))}
+
+.hero{min-height:100vh;display:flex;padding-top:140px;padding-bottom:80px}
+.hero-inner{width:100%;display:flex;flex-direction:column;justify-content:space-between;gap:70px}
+.eyebrow{margin-bottom:26px;display:flex;gap:18px;flex-wrap:wrap}
+
+.sgrid{display:grid;grid-template-columns:repeat(12,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-top:40px}
+.tile{padding:26px;min-height:200px}
+.num{font-weight:200;font-size:clamp(44px,5vw,66px);line-height:1}
+
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin:50px 0 34px}
+.chip{padding:10px 18px;border:1px solid rgba(27,33,40,.3);background:transparent;font:500 10.5px Montserrat,sans-serif;letter-spacing:.18em;text-transform:uppercase;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--navy);color:#fff}
+.reg{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}
+.svc{padding:30px}.svc[hidden]{display:none}
+
+.book{display:grid;grid-template-columns:1fr 1.15fr;gap:70px;align-items:start}
+.form{padding:42px}
+.sb{display:none}.sb.on{display:block}
+.optg{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.opt{position:relative;display:block;cursor:pointer}
+.opt input{position:absolute;opacity:0;inset:0}
+.ob{display:block;padding:15px;border:1px solid var(--line);background:rgba(255,255,255,.4);height:100%}
+.opt input:checked+.ob{border-color:var(--cer2);background:rgba(53,198,255,.13)}
+.field{width:100%;background:transparent;border:0;border-bottom:1px solid #8d959d;padding:12px 0;font:400 15px Montserrat,sans-serif;outline:0}
+.err{font-size:12px;color:#b3433d;margin-top:6px}
+.slots{display:flex;flex-wrap:wrap;gap:10px}
+.slot{padding:11px 16px;border:1px solid rgba(27,33,40,.35);background:transparent;cursor:pointer}
+.slot.on{background:var(--navy);color:#fff}
+.slot:disabled{opacity:.35}
+.submit{width:100%;height:56px;border:0;cursor:pointer;color:#fff;font:600 11.5px Montserrat,sans-serif;letter-spacing:.22em;text-transform:uppercase;background:linear-gradient(100deg,var(--navy),var(--cer2) 52%,var(--navy))}
+.done{display:none}.done.show{display:block}
+
+footer{background:#12171d;color:#c3c9d0;padding:80px 6vw 36px}
+footer a,footer p{display:block;font-size:14px;margin-bottom:12px;font-weight:300}
+
+@media(max-width:980px){.book{grid-template-columns:1fr}.reg{grid-template-columns:1fr 1fr}.navlinks{display:none}}
+@media(max-width:600px){.reg,.optg{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="tris" aria-hidden="true"></div>
+<nav>
+  <a class="logo" href="#top">AURA BioLabs</a>
+  <div class="navlinks"><a href="#status">Status</a><a href="#services">Services</a><a href="#book">Calibrate</a></div>
+  <a class="navcta" href="#book">Book a visit</a>
+</nav>
+<main>
+<section id="top" class="hero">
+  <div class="wrap hero-inner">
+    <div>
+      <div class="eyebrow micro"><span class="live">System online</span><span>New York</span><span>Washington D.C.</span></div>
+      <div class="rules"><i></i><i></i></div>
+      <h1 class="title">Tune the<br>system.</h1>
+      <p class="lead">Your biology, measured continuously and adjusted with precision.</p>
+    </div>
+    <div class="tabs" id="heroTabs">
+      <a class="tab on" href="#book"><i></i><span>Calibrate</span></a>
+      <a class="tab" href="#status"><i></i><span>Status</span></a>
+      <a class="tab" href="#services"><i></i><span>Services</span></a>
+    </div>
+  </div>
+</section>
+<section id="status"><div class="wrap"><h2 class="title sm">System status</h2><div class="sgrid" id="sgrid"></div></div></section>
+<section id="services"><div class="wrap"><h2 class="title sm">Service registry</h2>
+  <div class="chips" id="chips">
+    <button class="chip" data-f="all" aria-pressed="true">All</button>
+    <button class="chip" data-f="recovery" aria-pressed="false">Recovery</button>
+    <button class="chip" data-f="diagnostics" aria-pressed="false">Diagnostics</button>
+  </div>
+  <div class="reg" id="reg"></div></div></section>
+<section id="book"><div class="wrap book">
+  <div><h2 class="title sm">Begin<br>calibration.</h2></div>
+  <div class="glass form">
+    <form id="bf" novalidate>
+      <div class="sb on"><div class="optg" id="opts"></div><p class="err" id="e-svc"></p></div>
+      <div class="sb"><select class="field" id="age"><option value="">Age range</option><option>18-29</option><option>30-39</option><option>40+</option></select></div>
+      <div class="sb"><input class="field" type="date" id="date"><div class="slots" id="slots"></div><p class="err" id="e-slot"></p></div>
+      <div class="sb"><input class="field" id="fname" placeholder="Full name"><input class="field" id="email" type="email" placeholder="Email"><p class="err" id="e-name"></p></div>
+      <button type="submit" class="submit" id="next">Continue</button>
+    </form>
+    <div class="done" id="done"><h3>Calibration booked</h3></div>
+  </div>
+</div></section>
+</main>
+<footer><p>AURA BioLabs · Concept website · Not medical advice.</p></footer>
+
+<!-- PART 2 (script) goes here, just before </body> -->
+
+<script>
+(function(){
+'use strict';
+var $=function(s,r){return (r||document).querySelector(s)};
+var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+
+/* ---------- 1. TRIANGLE FIELD (8s primary / 12s secondary) ---------- */
+(function(){
+  var host=$('#tris'); if(!host) return;
+  var seed=7; function rnd(){seed=(seed*16807)%2147483647;return (seed-1)/2147483646}
+  var tones=['w','w','g','c','w','g'];
+  var dirs=[[15,0],[7.5,13],[-7.5,13]];     /* 15px along an edge axis */
+  var small=[[10,0],[5,8.7],[-5,8.7]];
+  var cols=6,rows=4,frag=document.createDocumentFragment();
+  function mk(cls,x,y,size,dir,dur){
+    var d=document.createElement('div');
+    d.className='t '+cls;
+    d.style.left=x+'%'; d.style.top=y+'%';
+    d.style.width=size+'px'; d.style.height=(size*0.866).toFixed(1)+'px';
+    d.style.setProperty('--sx',dir[0]+'px'); d.style.setProperty('--sy',dir[1]+'px');
+    d.style.animationDuration=dur+'s';
+    d.style.animationDelay='-'+(rnd()*dur).toFixed(2)+'s';
+    return d;
+  }
+  for(var r=0;r<rows;r++){for(var c=0;c<cols;c++){
+    var x=(c+.1+rnd()*.8)/cols*100, y=(r+.1+rnd()*.8)/rows*100;
+    var tone=tones[Math.floor(rnd()*tones.length)], flip=rnd()>.5?' dn':'';
+    frag.appendChild(mk(tone+flip,x,y,Math.round(180+rnd()*240),dirs[Math.floor(rnd()*3)],8));
+    var tone2=tones[Math.floor(rnd()*tones.length)], flip2=rnd()>.5?' dn':'';
+    frag.appendChild(mk('b '+tone2+flip2,x+rnd()*4,y+rnd()*4,Math.round(60+rnd()*80),small[Math.floor(rnd()*3)],12));
+  }}
+  host.appendChild(frag);
+})();
+
+/* ---------- 2. HERO TABS (hover moves selection) ---------- */
+(function(){
+  var tabs=$$('#heroTabs .tab'), box=$('#heroTabs'); if(!box) return;
+  function sel(t){tabs.forEach(function(x){x.classList.toggle('on',x===t)})}
+  tabs.forEach(function(t){t.addEventListener('mouseenter',function(){sel(t)});t.addEventListener('focus',function(){sel(t)})});
+  box.addEventListener('mouseleave',function(){sel(tabs[0])});
+})();
+
+/* ---------- 3. LIVE STATUS GRID ---------- */
+(function(){
+  var grid=$('#sgrid'); if(!grid) return;
+  var M=[
+    {l:'Heart rate variability',u:'ms',b:68,s:6,d:0,c:6,n:'RMSSD · 7-day'},
+    {l:'Cellular recovery',u:'%',b:87,s:3,d:0,c:3,n:'Composite score',ring:1},
+    {l:'Resting heart rate',u:'bpm',b:56,s:2,d:0,c:3,n:'Overnight',low:1},
+    {l:'Blood oxygen',u:'%',b:98,s:1,d:1,c:3,n:'SpO2'},
+    {l:'Sleep efficiency',u:'%',b:91,s:3,d:0,c:3,n:'Last night'},
+    {l:'Inflammation index',u:'mg/L',b:.7,s:.2,d:1,c:3,n:'hs-CRP',low:1},
+    {l:'Core temperature',u:'°C',b:36.6,s:.2,d:1,c:3,n:'Stable'}
+  ];
+  M.forEach(function(m){
+    m.v=m.b; m.h=[]; for(var i=0;i<28;i++) m.h.push(m.b+(Math.random()-.5)*m.s*1.4);
+    var el=document.createElement('div'); el.className='tile glass'; el.style.gridColumn='span '+m.c;
+    el.innerHTML='<div class="micro" style="display:flex;justify-content:space-between"><span>'+m.l+'</span><span class="live st">OPTIMAL</span></div>'+
+      '<div style="display:flex;align-items:center;gap:14px;margin-top:20px">'+
+      (m.ring?'<svg viewBox="0 0 80 80" width="76" height="76" style="transform:rotate(-90deg);flex:none"><circle cx="40" cy="40" r="34" fill="none" stroke="rgba(110,120,130,.25)" stroke-width="3"/><circle class="rf" cx="40" cy="40" r="34" fill="none" stroke="#35c6ff" stroke-width="3" stroke-linecap="round" pathLength="1" stroke-dasharray="1 1" stroke-dashoffset="1" style="transition:stroke-dashoffset 1.2s"/></svg>':'')+
+      '<span class="num">0</span><small class="micro">'+m.u+'</small></div>'+
+      '<p class="micro" style="margin-top:10px">'+m.n+'</p>'+
+      '<svg class="sp" viewBox="0 0 120 36" preserveAspectRatio="none" style="display:block;width:100%;height:44px;margin-top:14px"><polyline fill="none" stroke="#1d6fa8" stroke-width="1.5" vector-effect="non-scaling-stroke" points=""/></svg>';
+    grid.appendChild(el); m.el=el;
+  });
+  function draw(m){
+    var num=$('.num',m.el), st=$('.st',m.el), pl=$('polyline',m.el), rf=$('.rf',m.el);
+    num.textContent=m.v.toFixed(m.d);
+    var dev=(m.v-m.b)/m.s*(m.low?-1:1), good=dev>-.35;
+    st.textContent=good?'OPTIMAL':'NOMINAL'; st.style.opacity=good?1:.55;
+    var mn=Math.min.apply(null,m.h), mx=Math.max.apply(null,m.h), rg=(mx-mn)||1, pts=[];
+    m.h.forEach(function(v,i){pts.push((i/(m.h.length-1)*120).toFixed(1)+','+(33-(v-mn)/rg*30).toFixed(1))});
+    pl.setAttribute('points',pts.join(' '));
+    if(rf) rf.style.strokeDashoffset=(1-m.v/100).toFixed(3);
+  }
+  function tick(){
+    if(document.hidden) return;
+    M.forEach(function(m){
+      var v=m.v+(Math.random()-.5)*m.s*.5; v+=(m.b-v)*.15;
+      v=Math.max(m.b-m.s,Math.min(m.b+m.s,v)); m.v=v; m.h.push(v); m.h.shift(); draw(m);
+    });
+  }
+  M.forEach(draw); tick(); setInterval(tick,2000);
+})();
+
+/* ---------- 4. SERVICES + FILTER ---------- */
+var SV=[
+ {id:'cryo',cat:'recovery',name:'Sub-zero cryotherapy',desc:'Whole-body exposure in a dry sub-zero chamber, designed to support recovery.',meta:'−110 °C · 3 min',spec:[['Temperature','−110 °C'],['Duration','3 minutes'],['Frequency','2–3× weekly']]},
+ {id:'hbot',cat:'recovery',name:'Pressurized oxygen chamber',desc:'Breathe oxygen at increased pressure in a private, monitored chamber.',meta:'Up to 2.0 ATA · 60 min',spec:[['Pressure','Up to 2.0 ATA'],['Duration','60 minutes'],['Supervision','Clinician']]},
+ {id:'red',cat:'regeneration',name:'Red-light therapy',desc:'Targeted red and near-infrared light panels for skin and muscle support.',meta:'660/850 nm · 20 min',spec:[['Wavelength','660 / 850 nm'],['Duration','20 minutes'],['Coverage','Full body']]},
+ {id:'epi',cat:'diagnostics',name:'Epigenetic age test',desc:'A DNA methylation analysis that estimates your biological age.',meta:'Results in 10 days',spec:[['Sample','Blood'],['Results','10 days'],['Report','Clinician-led']]},
+ {id:'panel',cat:'diagnostics',name:'Full biomarker panel',desc:'More than one hundred markers across heart, metabolism and hormones.',meta:'100+ markers · 7 days',spec:[['Markers','100+'],['Fasting','8 hours'],['Results','7 days']]},
+ {id:'iv',cat:'regeneration',name:'NAD+ & nutrient IV',desc:'Clinician-guided infusion tailored to your panel results.',meta:'60–90 min',spec:[['Duration','60–90 min'],['Guided by','Your panel'],['Setting','Private suite']]}
+];
+var sel={};
+function syncSel(){
+  var n=0;
+  SV.forEach(function(s){
+    if(sel[s.id]) n++;
+    var b=$('.add[data-id="'+s.id+'"]'); if(b){b.setAttribute('aria-pressed',sel[s.id]?'true':'false');b.textContent=sel[s.id]?'Added ✓':'Add to calibration'}
+    var i=$('#opts input[value="'+s.id+'"]'); if(i) i.checked=!!sel[s.id];
+  });
+  var c=$('#selcount'); if(c) c.textContent=n?n+' selected.':'None selected.';
+}
+(function(){
+  var reg=$('#reg'); if(!reg) return;
+  reg.innerHTML=SV.map(function(s,i){
+    return '<article class="svc glass" data-cat="'+s.cat+'"><span class="micro">SVC-0'+(i+1)+' · '+s.cat+'</span>'+
+    '<h3 style="font-weight:300;font-size:22px;text-transform:uppercase;margin:20px 0 12px">'+s.name+'</h3>'+
+    '<p style="font-size:14px;line-height:1.7;color:#4b535b;margin-bottom:18px">'+s.desc+'</p>'+
+    '<dl style="border-top:1px solid rgba(110,120,130,.4);margin-bottom:22px">'+s.spec.map(function(p){return '<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(110,120,130,.25);font-size:12.5px"><dt class="micro">'+p[0]+'</dt><dd>'+p[1]+'</dd></div>'}).join('')+'</dl>'+
+    '<button type="button" class="add" data-id="'+s.id+'" aria-pressed="false" style="background:none;border:0;border-bottom:1px solid #1d6fa8;padding:0 0 5px;font:600 10.5px Montserrat,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#1d6fa8;cursor:pointer">Add to calibration</button></article>';
+  }).join('');
+  reg.addEventListener('click',function(e){
+    var b=e.target.closest('.add'); if(!b) return;
+    sel[b.dataset.id]=!sel[b.dataset.id]; syncSel();
+  });
+  var chips=$$('#chips .chip');
+  chips.forEach(function(ch){ch.addEventListener('click',function(){
+    chips.forEach(function(x){x.setAttribute('aria-pressed',x===ch?'true':'false')});
+    $$('.svc',reg).forEach(function(c){c.hidden=!(ch.dataset.f==='all'||c.dataset.cat===ch.dataset.f)});
+  })});
+  var opts=$('#opts');
+  if(opts){
+    opts.innerHTML=SV.map(function(s){return '<label class="opt"><input type="checkbox" value="'+s.id+'"><span class="ob"><b style="display:block;font-size:12.5px;margin-bottom:3px">'+s.name+'</b><small style="color:#66707a">'+s.meta+'</small></span></label>'}).join('');
+    opts.addEventListener('change',function(e){if(e.target.value){sel[e.target.value]=e.target.checked;syncSel()}});
+  }
+})();
+
+/* ---------- 5. BOOKING (4 steps) ---------- */
+(function(){
+  var bf=$('#bf'); if(!bf) return;
+  var steps=$$('.sb',bf), next=$('#next'), done=$('#done'), step=0, slot=null;
+  var dateEl=$('#date');
+  function z(n){return String(n).padStart(2,'0')}
+  function iso(d){return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())}
+  var t=new Date(), mx=new Date(); mx.setDate(mx.getDate()+90);
+  dateEl.min=iso(t); dateEl.max=iso(mx);
+
+  /* back button */
+  var back=document.createElement('button');
+  back.type='button'; back.textContent='← Back'; back.hidden=true;
+  back.style.cssText='background:none;border:0;font:600 10.5px Montserrat,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#66707a;cursor:pointer;padding:12px 4px;margin-top:18px;display:block';
+  bf.appendChild(back);
+
+  /* review block + extra fields on step 4 */
+  var review=document.createElement('div'); review.style.cssText='margin:0 0 20px;border-top:1px solid rgba(110,120,130,.4)';
+  steps[3].insertBefore(review,steps[3].firstChild);
+  var ok=document.createElement('label');
+  ok.style.cssText='display:flex;gap:12px;margin-top:22px;font-size:13px;line-height:1.6;color:#4b535b;cursor:pointer';
+  ok.innerHTML='<input type="checkbox" id="ok" style="margin-top:3px"><span>I understand AURA BioLabs will contact me to confirm, and that this is not emergency care.</span>';
+  steps[3].appendChild(ok);
+  var eok=document.createElement('p'); eok.className='err'; eok.id='e-ok'; steps[3].appendChild(eok);
+
+  function hash(s){var h=2166136261;for(var i=0;i<s.length;i++){h=Math.imul(h^s.charCodeAt(i),16777619)}return h>>>0}
+  function fmt(h){return (h%12||12)+':00 '+(h<12?'AM':'PM')}
+  function buildSlots(){
+    var box=$('#slots'); box.innerHTML=''; slot=null;
+    var v=dateEl.value; if(!v){box.innerHTML='<p class="hint" style="font-size:13px;color:#66707a">Choose a date to see times.</p>';return}
+    var p=v.split('-').map(Number), d=new Date(p[0],p[1]-1,p[2]), dow=d.getDay();
+    if(dow===0){box.innerHTML='<p style="font-size:13px;color:#66707a">Closed on Sundays. Please choose another day.</p>';return}
+    var hours=dow===6?[9,10,11,12]:[7,8,9,10,11,13,14,15,16,17,18], now=new Date(), today=v===iso(now), n=0;
+    hours.forEach(function(h){
+      var b=document.createElement('button'); b.type='button'; b.className='slot'; b.textContent=fmt(h); b.dataset.h=h;
+      if(hash(v+h)%5===0||(today&&h<=now.getHours())) b.disabled=true; else n++;
+      box.appendChild(b);
+    });
+    if(!n) box.innerHTML='<p style="font-size:13px;color:#66707a">No openings that day. Try another date.</p>';
+  }
+  dateEl.addEventListener('change',buildSlots); dateEl.addEventListener('input',buildSlots);
+  $('#slots').addEventListener('click',function(e){
+    var b=e.target.closest('.slot'); if(!b||b.disabled) return;
+    $$('.slot').forEach(function(x){x.classList.remove('on')}); b.classList.add('on'); slot=+b.dataset.h;
+  });
+  buildSlots();
+
+  function E(id,m){var e=$('#e-'+id); if(e) e.textContent=m||''}
+  function chosen(){return SV.filter(function(s){return sel[s.id]})}
+  function valid(n){
+    ['svc','slot','name','ok'].forEach(function(k){E(k,'')});
+    var good=true;
+    if(n===0&&!chosen().length){E('svc','Select at least one module.');good=false}
+    if(n===2){
+      var v=dateEl.value;
+      if(!v){E('slot','Choose a date and time.');good=false}
+      else if(new Date(v+'T00:00').getDay()===0){E('slot','We are closed on Sundays.');good=false}
+      else if(slot===null){E('slot','Choose an available time.');good=false}
+    }
+    if(n===3){
+      var nm=$('#fname').value.trim(), em=$('#email').value.trim();
+      if(nm.length<2||!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)){E('name','Enter your full name and a valid email.');good=false}
+      if(!$('#ok').checked){E('ok','Please confirm to continue.');good=false}
+    }
+    return good;
+  }
+  function when(){
+    var p=dateEl.value.split('-').map(Number), d=new Date(p[0],p[1]-1,p[2]);
+    return d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'})+' at '+fmt(slot);
+  }
+  function row(k,v){var d=document.createElement('div');d.style.cssText='display:flex;justify-content:space-between;gap:20px;padding:12px 0;border-bottom:1px solid rgba(110,120,130,.28);font-size:13.5px;text-align:right';
+    var a=document.createElement('span');a.className='micro';a.textContent=k;var b=document.createElement('span');b.textContent=v;d.appendChild(a);d.appendChild(b);return d}
+  function show(n){
+    step=n; steps.forEach(function(s,i){s.classList.toggle('on',i===n)});
+    next.textContent=n===3?'Confirm calibration':'Continue'; back.hidden=n===0;
+    if(n===3){review.innerHTML='';
+      review.appendChild(row('Modules',chosen().map(function(s){return s.name}).join(', ')));
+      review.appendChild(row('Age range',$('#age').value||'Not provided'));
+      review.appendChild(row('When',when()));}
+  }
+  back.addEventListener('click',function(){if(step>0) show(step-1)});
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'&&step>0&&bf.contains(document.activeElement)&&!done.classList.contains('show')) show(step-1);
+  });
+  bf.addEventListener('submit',function(e){
+    e.preventDefault();
+    if(!valid(step)) return;
+    if(step<3){show(step+1);return}
+    next.disabled=true; next.textContent='Calibrating…';
+    setTimeout(function(){
+      var ref='AB-'+hash(dateEl.value+slot+$('#email').value).toString(36).toUpperCase().slice(0,6);
+      bf.style.display='none';
+      done.innerHTML='';
+      var h=document.createElement('h3'); h.textContent='Calibration booked';
+      h.style.cssText='font-weight:200;font-size:34px;text-transform:uppercase;margin-bottom:20px';
+      var p=document.createElement('p'); p.textContent='Thank you, '+$('#fname').value.trim()+'. Reference '+ref+'. A confirmation will be sent to '+$('#email').value.trim()+'.';
+      p.style.cssText='font-size:14px;line-height:1.7;color:#4b535b;margin-bottom:20px';
+      var sm=document.createElement('div'); sm.style.cssText='text-align:left;border-top:1px solid rgba(110,120,130,.4)';
+      sm.appendChild(row('Modules',chosen().map(function(s){return s.name}).join(', ')));
+      sm.appendChild(row('When',when()));
+      var ics=document.createElement('button'); ics.type='button'; ics.className='submit'; ics.textContent='Add to calendar'; ics.style.marginTop='26px';
+      ics.addEventListener('click',function(){
+        var p2=dateEl.value.split('-').map(Number), s=new Date(p2[0],p2[1]-1,p2[2],slot,0), en=new Date(s.getTime()+3600000);
+        function f(d){return d.getFullYear()+z(d.getMonth()+1)+z(d.getDate())+'T'+z(d.getHours())+z(d.getMinutes())+'00'}
+        var txt=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//AURA BioLabs//EN','BEGIN:VEVENT','UID:'+ref+'@aura.example','DTSTAMP:'+new Date().toISOString().replace(/[-:]/g,'').split('.')[0]+'Z','DTSTART:'+f(s),'DTEND:'+f(en),'SUMMARY:AURA BioLabs calibration','DESCRIPTION:Reference '+ref,'END:VEVENT','END:VCALENDAR'].join('\r\n');
+        var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([txt],{type:'text/calendar'})); a.download='aura-biolabs.ics'; document.body.appendChild(a); a.click(); a.remove();
+      });
+      var again=document.createElement('button'); again.type='button'; again.textContent='Start a new calibration';
+      again.style.cssText='background:none;border:0;margin-top:18px;font:600 10.5px Montserrat,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#66707a;cursor:pointer';
+      again.addEventListener('click',function(){
+        sel={}; syncSel(); bf.reset(); dateEl.value=''; buildSlots(); done.classList.remove('show'); bf.style.display=''; next.disabled=false; show(0);
+      });
+      [h,p,sm,ics,again].forEach(function(x){done.appendChild(x)});
+      done.classList.add('show');
+    },800);
+  });
+  show(0);
+})();
+
+/* ---------- 6. NAV, CLOCK ---------- */
+(function(){
+  var clk=$('#clock');
+  if(clk){try{var f=new Intl.DateTimeFormat('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23',timeZone:'America/New_York'});
+    var up=function(){clk.textContent='NYC '+f.format(new Date())}; up(); setInterval(up,1000)}catch(e){}}
+})();
+})();
+</script>
+</body>
+</html>
