@@ -1,189 +1,1764 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>SNOWFALL // Telemetry</title>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SNOWFALL — Live Snow Report</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #e4e7eb;
+  --ink: #0a0a0a;
+  --mute: #6a7580;
+  --line: rgba(10, 10, 10, 0.12);
+  --line-heavy: rgba(10, 10, 10, 0.3);
+  --cyan: #1a5276;
+  --cyan-dim: rgba(26, 82, 118, 0.15);
+  --cer2: #0b2d4a;
+  --navy: #02101d;
+  --warn: #e53935;
+  --yellow: #b87b00;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Montserrat', Arial, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  overflow-x: hidden;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+main, footer { position: relative; z-index: 2; }
+.wrap { max-width: 1440px; margin: 0 auto; padding: 0 5vw; }
+
+.micro { font-family: var(--mono); font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--mute); font-weight: 500; }
+.h2 { font-weight: 200; text-transform: uppercase; line-height: 1; font-size: clamp(28px, 4vw, 48px); letter-spacing: 0.15em; }
+.label { display: flex; align-items: baseline; font-family: var(--mono); font-size: 9px; letter-spacing: 0.25em; color: var(--mute); text-transform: uppercase; margin-bottom: 24px; border-bottom: 1px solid var(--line); padding-bottom: 12px; }
+
+/* ── Animated background ─────────────────────────── */
+.bg-layer { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: var(--bg); overflow: hidden; contain: paint; }
+#tris-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+@keyframes layerCycle { 0%, 40% { opacity: 1; } 60%, 90% { opacity: 0; } 100% { opacity: 1; } }
+.tri { animation: layerCycle 15s linear infinite; }
+.vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 30%, rgba(180, 190, 200, 0.4) 100%); pointer-events: none; }
+.is-scrolling .tri { animation-play-state: paused; }
+
+/* ── Loading state ───────────────────────────────── */
+.data-container { transition: opacity 0.3s ease, filter 0.3s ease; }
+body.is-loading .data-container { opacity: 0.25; filter: blur(2px); pointer-events: none; }
+body.is-loading .search-input { border-bottom-color: var(--cyan); }
+
+/* ── Navigation bar ─────────────────────────────── */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: space-between;
+  height: calc(72px + env(safe-area-inset-top, 0px));
+  padding: env(safe-area-inset-top, 0px) max(5vw, env(safe-area-inset-right, 0px)) 0 max(5vw, env(safe-area-inset-left, 0px));
+  background: linear-gradient(to bottom, var(--bg) 30%, transparent 100%);
+  border-bottom: 1px solid var(--line);
+}
+.brand { font-weight: 600; letter-spacing: 0.4em; font-size: 13px; text-transform: uppercase; display: flex; align-items: center; gap: 12px; color: var(--ink); }
+.brand::before {
+  content: ""; display: inline-block; width: 0; height: 0;
+  border-left: 5px solid transparent; border-right: 5px solid transparent;
+  border-bottom: 9px solid var(--cyan); filter: drop-shadow(0 0 6px var(--cyan));
+}
+.nav-status { display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink); }
+.nav-status .led { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 8px var(--cyan); animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+/* ── Search bar ─────────────────────────────────── */
+.search-wrap { margin: 0 0 30px; display: flex; gap: 16px; align-items: flex-end; position: relative; z-index: 10; }
+.search-input {
+  flex: 1; background: transparent; border: none; border-bottom: 1px solid var(--line-heavy);
+  padding: 12px 0; font-family: var(--mono); font-size: 14px; color: var(--ink);
+  letter-spacing: 0.1em; outline: none; transition: border-color 0.2s; text-transform: uppercase;
+}
+.search-input::placeholder { color: var(--mute); }
+.search-input:focus { border-bottom-color: var(--cyan); }
+.search-btn {
+  background: transparent; border: 1px solid var(--ink); color: var(--ink);
+  padding: 12px 32px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em;
+  text-transform: uppercase; cursor: pointer; transition: all 0.2s;
+}
+.search-btn:hover { background: linear-gradient(100deg, var(--navy), var(--cer2)); border-color: var(--cer2); color: #fff; }
+.search-btn:disabled { opacity: 0.5; cursor: wait; }
+
+/* ── HUD panels ─────────────────────────────────── */
+.hud-panel {
+  position: relative; padding: 40px; background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 24px), calc(100% - 24px) 100%, 0 100%);
+  margin-bottom: 24px;
+}
+.hud-panel::before { content: ""; position: absolute; top: 0; left: 0; width: 32px; height: 2px; background: var(--cyan); }
+.hud-panel::after { content: ""; position: absolute; top: 0; right: 0; width: 2px; height: 32px; background: var(--cyan); }
+
+section.sec { padding: 0 0 120px; }
+.sec-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap; margin: 0 0 40px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+.sec-head .micro { display: block; margin-bottom: 10px; color: var(--cyan); }
+
+/* ── Hero section ───────────────────────────────── */
+.hero { padding: calc(140px + env(safe-area-inset-top, 0px)) 0 60px; }
+.hero-top { display: flex; justify-content: space-between; gap: 24px; margin-bottom: 32px; flex-wrap: wrap; align-items: center; }
+.hero-loc { display: flex; flex-direction: column; gap: 8px; }
+.hero-loc .city { font-weight: 200; font-size: 24px; letter-spacing: 0.15em; text-transform: uppercase; transition: color 0.3s; }
+body.is-loading .hero-loc .city { color: var(--cyan); }
+.hero-loc .date { font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--mute); }
+
+/* ── Ticker tape ────────────────────────────────── */
+.ticker-wrap {
+  overflow: hidden; white-space: nowrap;
+  border-top: 1px solid var(--line-heavy); border-bottom: 1px solid var(--line-heavy);
+  padding: 12px 0; margin-bottom: 40px; position: relative; z-index: 10;
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+}
+.ticker-content {
+  display: inline-block; font-family: var(--mono); font-size: 11px;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  animation: ticker 30s linear infinite;
+}
+@keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+.ticker-item { margin-right: 40px; color: var(--mute); }
+.ticker-item.alert { color: var(--warn); font-weight: 700; }
+.ticker-item.warn { color: var(--yellow); font-weight: 700; }
+.ticker-item.ok { color: var(--cyan); font-weight: 700; }
+
+.hero-main { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: stretch; }
+.hero-left { display: flex; flex-direction: column; gap: 24px; }
+
+.rate-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--cyan); display: flex; align-items: center; gap: 12px; }
+.rate-label::after { content: ""; flex: 1; height: 1px; background: var(--cyan); opacity: 0.3; }
+.rate { font-weight: 200; font-size: clamp(64px, 8vw, 120px); line-height: 0.8; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; display: flex; align-items: baseline; }
+.rate-unit { font-size: 0.25em; font-weight: 400; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mute); margin-left: 12px; line-height: 1.2; display: flex; flex-direction: column; }
+.rate-unit span:first-child { color: var(--ink); font-weight: 500; }
+
+.rows div {
+  display: flex; justify-content: space-between; padding: 14px 0;
+  border-bottom: 1px solid var(--line); font-size: 13px;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  transition: all 0.3s; position: relative;
+}
+.rows div:last-child { border-bottom: none; }
+.rows span:last-child { font-family: var(--mono); font-size: 14px; font-weight: 500; transition: color 0.3s; }
+.rows div.highlight-warn { padding-left: 12px; }
+.rows div.highlight-warn::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--warn); }
+.rows div.highlight-warn span:last-child { color: var(--warn); font-weight: 700; }
+.rows div.highlight-yellow { padding-left: 12px; }
+.rows div.highlight-yellow::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--yellow); }
+.rows div.highlight-yellow span:last-child { color: var(--yellow); font-weight: 700; }
+
+.prob { margin-bottom: 20px; }
+.prob .top { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.1em; }
+.prob .top span:last-child { color: var(--cyan); font-weight: 600; }
+.bar { height: 2px; background: var(--line-heavy); position: relative; overflow: hidden; }
+.bar i { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--cyan); transition: width 1.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
+
+/* ── Forecast chart ─────────────────────────────── */
+.chart-panel { position: relative; overflow: visible; display: flex; flex-direction: column; justify-content: space-between; }
+.chart-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 32px; }
+.chart-head .title { font-family: var(--mono); font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--ink); font-weight: 600; }
+.chart-head .legend { display: flex; gap: 20px; font-family: var(--mono); font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mute); }
+.chart-head .legend span { display: inline-flex; align-items: center; gap: 8px; }
+.chart-head .legend span::before { content: ""; width: 8px; height: 8px; background: var(--cyan); }
+.chart-head .legend span.fc::before { background: var(--cyan-dim); border: 1px solid var(--cyan); }
+.chart { width: 100%; height: 240px; position: relative; flex: 1; cursor: crosshair; }
+.chart svg { width: 100%; height: 100%; overflow: visible; }
+.chart-line { fill: none; stroke: var(--cyan); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.chart-fill { fill: url(#chart-grad); stroke: none; }
+.chart-grid { stroke: var(--line); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.chart-point-overlay {
+  position: absolute; width: 10px; height: 10px; margin: -5px 0 0 -5px;
+  border-radius: 50%; background: var(--bg); border: 2px solid var(--cyan);
+  pointer-events: none; display: none; animation: pointPulse 2s infinite;
+}
+@keyframes pointPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(26, 82, 118, 0.55); }
+  70%  { box-shadow: 0 0 0 12px rgba(26, 82, 118, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(26, 82, 118, 0); }
+}
+.forecast-chart-guide {
+  position: absolute; top: 0; bottom: 0; width: 1px;
+  background: var(--cyan); opacity: 0; pointer-events: none;
+  transition: opacity 0.12s; z-index: 4;
+}
+.forecast-chart-guide.visible { opacity: 0.45; }
+.chart-labels { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mute); margin-top: 16px; }
+.chart-labels span:nth-child(2) { color: var(--cyan); }
+.empty-chart { display: none; position: absolute; inset: 0; align-items: center; justify-content: center; font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; color: var(--mute); text-transform: uppercase; }
+.empty-chart.visible { display: flex; }
+
+/* ── Readout stats ──────────────────────────────── */
+.readout { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line-heavy); margin-top: 60px; padding-top: 40px; }
+.rcell { padding-right: 24px; border-right: 1px solid var(--line); position: relative; }
+.rcell:last-child { border-right: 0; padding-right: 0; }
+.rcell::before { content: ""; position: absolute; top: -41px; left: 0; width: 1px; height: 8px; background: var(--line-heavy); }
+.rcell:first-child::before { display: none; }
+.rcell .k { font-family: var(--mono); font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--mute); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.rcell .k::before { content: "//"; color: var(--cyan); font-size: 10px; font-weight: 600; }
+.rcell .v { font-weight: 200; font-size: clamp(32px, 3.5vw, 48px); line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.rcell .v small { font-size: 0.35em; color: var(--mute); font-weight: 400; margin-left: 6px; letter-spacing: 0.1em; }
+
+/* ── Hourly timeline ────────────────────────────── */
+.timeline-scroll { overflow-x: auto; padding-bottom: 8px; -webkit-overflow-scrolling: touch; }
+.timeline-inner { position: relative; min-width: 100%; }
+@media (max-width: 900px) { .timeline-inner { min-width: 900px; } }
+
+.hourly-curve { display: block; width: 100%; height: 130px; margin-bottom: 0; overflow: visible; }
+
+.hourly-wrap { display: grid; grid-template-columns: repeat(12, 1fr); border-top: 1px solid var(--line-heavy); position: relative; padding-top: 8px; }
+.hourly-wrap::before { content: ""; position: absolute; top: 48px; left: 0; right: 0; height: 1px; background: var(--line); }
+.hour { padding: 0 10px 30px; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; position: relative; border-right: 1px solid var(--line); z-index: 2; min-width: 80px; cursor: help; }
+.hour:last-child { border-right: 0; }
+.hour .t { font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mute); height: 20px; }
+.hour .node { width: 9px; height: 9px; background: var(--bg); border: 2px solid var(--mute); border-radius: 50%; margin-top: 11px; position: relative; z-index: 3; transition: all 0.3s; }
+.hour .i { color: var(--mute); height: 32px; display: flex; align-items: center; margin-top: 10px; }
+.hour .amt { font-weight: 300; font-size: 22px; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.hour .amt small { font-size: 0.6em; color: var(--mute); font-weight: 300; margin-left: 3px; }
+.hour .intensity { font-family: var(--mono); font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--mute); margin-top: 4px; }
+.hour .intensity.hv { color: var(--warn); font-weight: 700; }
+.hour.now .t { color: var(--cyan); font-weight: 600; }
+.hour.now .node { border-color: var(--cyan); background: var(--cyan); box-shadow: 0 0 12px var(--cyan); }
+.hour.now .i, .hour.now .amt, .hour.now .intensity { color: var(--cyan); }
+.hour.now .intensity.hv { color: var(--warn); font-weight: 700; }
+
+.peak-badge {
+  display: inline-flex; align-items: baseline; gap: 14px;
+  padding: 10px 18px; border: 1px solid var(--line-heavy);
+  background: rgba(255,255,255,0.45); font-family: var(--mono);
+}
+.peak-k { font-size: 9px; letter-spacing: 0.25em; color: var(--mute); }
+.peak-v { font-size: 15px; font-weight: 600; color: var(--cyan); font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+.peak-t { font-size: 10px; letter-spacing: 0.15em; color: var(--mute); }
+
+/* ── Signal strip ───────────────────────────────── */
+.signal-strip {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--line-heavy); border-bottom: 1px solid var(--line-heavy);
+  background: rgba(255,255,255,0.4);
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+}
+.signal-cell { padding: 28px 32px; border-right: 1px solid var(--line); position: relative; }
+.signal-cell:last-child { border-right: 0; }
+.signal-cell::before { content: ""; position: absolute; top: 0; left: 0; width: 24px; height: 2px; background: var(--cyan); }
+.signal-k { font-family: var(--mono); font-size: 9px; letter-spacing: 0.3em; color: var(--mute); text-transform: uppercase; margin-bottom: 14px; }
+.signal-v {
+  font-weight: 200; font-size: 40px; line-height: 1;
+  font-variant-numeric: tabular-nums; letter-spacing: -0.02em; color: var(--ink);
+  display: flex; align-items: baseline; gap: 6px;
+}
+.signal-v small { font-size: 0.32em; color: var(--mute); font-weight: 400; letter-spacing: 0.15em; }
+.signal-v-time { font-size: 26px; font-family: var(--mono); font-weight: 500; letter-spacing: 0.02em; }
+.signal-s { margin-top: 12px; font-family: var(--mono); font-size: 9px; letter-spacing: 0.2em; color: var(--mute); text-transform: uppercase; }
+
+/* ── Season comparison panel ─────────────────────── */
+.season-panel {
+  display: grid; grid-template-columns: minmax(220px, 300px) 1fr; gap: 48px; padding: 44px;
+  background: rgba(255,255,255,0.3); border: 1px solid rgba(255,255,255,0.55);
+  position: relative;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 24px), calc(100% - 24px) 100%, 0 100%);
+}
+.season-panel::before { content: ""; position: absolute; top: 0; left: 0; width: 32px; height: 2px; background: var(--cyan); }
+.season-stat { display: flex; flex-direction: column; padding-right: 48px; border-right: 1px solid var(--line); }
+.season-k { font-family: var(--mono); font-size: 10px; letter-spacing: 0.3em; color: var(--cyan); text-transform: uppercase; margin-bottom: 24px; }
+.season-big { font-weight: 200; font-size: clamp(56px, 6.5vw, 96px); line-height: 0.85; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; display: flex; align-items: baseline; gap: 10px; }
+.season-big small { font-size: 0.22em; color: var(--mute); font-weight: 400; letter-spacing: 0.15em; }
+.season-delta {
+  margin-top: 28px; align-self: flex-start;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase;
+  padding: 8px 14px; border: 1px solid var(--line); color: var(--mute);
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.season-delta.pos { color: var(--cyan); border-color: var(--cyan); }
+.season-delta.neg { color: var(--mute); }
+.season-chart-wrap { position: relative; height: 260px; }
+.season-chart-wrap canvas { width: 100%; height: 100%; display: block; cursor: crosshair; }
+
+/* ── Nearby area cards ───────────────────────────── */
+.nearby-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.nearby-card {
+  padding: 26px 24px; background: rgba(255,255,255,0.35);
+  border: 1px solid rgba(255,255,255,0.55); position: relative;
+  transition: border-color 0.25s cubic-bezier(0.2, 0.7, 0.2, 1);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%);
+  cursor: help;
+}
+.nearby-card:hover { border-color: var(--cyan); }
+.nearby-card::before { content: ""; position: absolute; top: 0; left: 0; width: 20px; height: 2px; background: var(--cyan); }
+.nearby-direction { font-family: var(--mono); font-size: 10px; letter-spacing: 0.3em; color: var(--cyan); text-transform: uppercase; margin-bottom: 4px; }
+.nearby-label { font-family: var(--mono); font-size: 8px; letter-spacing: 0.2em; color: var(--mute); text-transform: uppercase; opacity: 0.7; margin-bottom: 20px; }
+.nearby-rate { font-weight: 200; font-size: 34px; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; display: flex; align-items: baseline; gap: 5px; }
+.nearby-rate small { font-size: 0.32em; color: var(--mute); font-weight: 400; letter-spacing: 0.1em; }
+.nearby-bar { height: 3px; background: var(--line); margin: 18px 0 12px; position: relative; overflow: hidden; }
+.nearby-bar i { position: absolute; inset: 0 auto 0 0; background: var(--cyan); width: 0; transition: width 1s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.nearby-total { font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em; color: var(--mute); display: flex; justify-content: space-between; text-transform: uppercase; }
+.nearby-total span:last-child { color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 500; }
+
+footer { margin-top: 80px; border-top: 1px solid var(--line-heavy); padding: 40px 0 calc(40px + env(safe-area-inset-bottom, 0px)); font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--mute); }
+.foot { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+
+/* ── Boot screen ────────────────────────────────── */
+#boot {
+  position: fixed; inset: 0; z-index: 200; background: #ffffff;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+#boot.hidden { opacity: 0; pointer-events: none; }
+.boot-content { display: flex; flex-direction: column; align-items: center; text-align: center; max-width: 420px; width: 100%; padding: 0 24px; }
+.boot-spinner { width: 48px; height: 48px; margin-bottom: 32px; color: var(--cyan); animation: spin 3s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.boot-logo { font-family: 'Montserrat', sans-serif; font-weight: 300; font-size: 32px; letter-spacing: 0.4em; color: var(--ink); text-transform: uppercase; margin-bottom: 12px; }
+.boot-tagline { font-family: var(--mono); font-size: 10px; letter-spacing: 0.3em; color: var(--mute); text-transform: uppercase; margin-bottom: 48px; }
+.boot-bar-wrap { width: 100%; height: 2px; background: rgba(0,0,0,0.08); position: relative; overflow: hidden; margin-bottom: 20px; }
+.boot-bar { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--cyan); transition: width 0.4s ease; }
+.boot-status { font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; color: var(--mute); text-transform: uppercase; min-height: 14px; }
+
+/* ── Reveal animations ──────────────────────────── */
+.reveal { opacity: 0; transform: translateY(12px); transition: opacity 0.8s cubic-bezier(0.2, 0.7, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1); }
+body.loaded .reveal { opacity: 1; transform: translateY(0); }
+.delay-1 { transition-delay: 0.1s; }
+.delay-2 { transition-delay: 0.2s; }
+.delay-3 { transition-delay: 0.3s; }
+.delay-4 { transition-delay: 0.4s; }
+.delay-5 { transition-delay: 0.5s; }
+
+/* ── Global tooltip ─────────────────────────────── */
+.global-tooltip {
+  position: fixed;
+  z-index: 9999;
+  top: 0; left: 0;
+  background: var(--navy);
+  color: var(--bg);
+  padding: 12px 16px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+  line-height: 1.7;
+  min-width: 180px;
+  max-width: 280px;
+  border-left: 2px solid var(--cyan);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+.global-tooltip.visible { opacity: 1; }
+.global-tooltip .tt-label {
+  color: var(--cyan);
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  border-bottom: 1px solid rgba(26, 82, 118, 0.4);
+  padding-bottom: 6px;
+}
+.global-tooltip .tt-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-variant-numeric: tabular-nums;
+}
+.global-tooltip .tt-row span:first-child { color: rgba(228, 231, 235, 0.55); }
+.global-tooltip .tt-row span:last-child { color: #fff; font-weight: 500; }
+
+/* ── Responsive ─────────────────────────────────── */
+@media (max-width: 1024px) {
+  .hero-main { grid-template-columns: 1fr; gap: 40px; }
+  .readout { grid-template-columns: repeat(2, 1fr); gap: 32px; }
+  .rcell { border-right: 0; padding-right: 0; }
+  .signal-strip { grid-template-columns: repeat(2, 1fr); }
+  .signal-cell:nth-child(2n) { border-right: 0; }
+  .signal-cell:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+  .season-panel { grid-template-columns: 1fr; gap: 32px; padding: 32px; }
+  .season-stat { padding-right: 0; padding-bottom: 32px; border-right: 0; border-bottom: 1px solid var(--line); }
+  .nearby-cards { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .wrap { padding: 0 4vw; }
+  .search-wrap { flex-direction: column; align-items: stretch; }
+  .hero-loc .city { font-size: 18px; }
+  .readout { grid-template-columns: 1fr; gap: 24px; }
+  .signal-strip { grid-template-columns: 1fr; }
+  .signal-cell { border-right: 0; border-bottom: 1px solid var(--line); }
+  .signal-cell:last-child { border-bottom: 0; }
+  .nearby-cards { grid-template-columns: 1fr; }
+  .season-panel { padding: 24px 20px; }
+  .hud-panel { padding: 24px 20px; }
+  .rate { font-size: clamp(48px, 14vw, 80px); }
+  .rate-unit { margin-left: 8px; font-size: 0.35em; }
+  .signal-v { font-size: 32px; }
+  .signal-v-time { font-size: 22px; }
+  .peak-badge { flex-wrap: wrap; }
+}
+</style>
 </head>
 <body>
 
-  <!-- WHITE DBH BOOT SCREEN -->
-  <div id="boot">
-    <div class="boot-content">
-      <!-- Segmented Spinner -->
-      <div class="boot-spinner">
-        <svg viewBox="0 0 100 100" fill="none">
-          <!-- Outer track (faint) -->
-          <circle cx="50" cy="50" r="40" stroke="#e4e7eb" stroke-width="4" />
-          <!-- Segments (blue) -->
-          <path d="M50 10 A40 40 0 0 1 90 50" stroke="#00a8ff" stroke-width="4" stroke-linecap="round" />
-          <path d="M50 90 A40 40 0 0 1 10 50" stroke="#00a8ff" stroke-width="4" stroke-linecap="round" />
-        </svg>
-      </div>
-
-      <div class="boot-title">SNOWFALL</div>
-      <div class="boot-subtitle">TELEMETRY SYSTEM</div>
-
-      <div class="boot-bar-wrap"><div class="boot-bar" id="bootBar"></div></div>
-      
-      <div class="boot-details">
-        <span>INITIALIZING</span>
-        <span id="bootPct">0%</span>
-      </div>
-
-      <div class="boot-press" id="bootPress">PRESS ANY KEY TO CONTINUE</div>
+<div id="boot">
+  <div class="boot-content">
+    <div class="boot-spinner">
+      <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <line x1="50" y1="15" x2="50" y2="85"/>
+        <line x1="20" y1="32" x2="80" y2="68"/>
+        <line x1="20" y1="68" x2="80" y2="32"/>
+      </svg>
     </div>
+    <div class="boot-logo">SNOWFALL</div>
+    <div class="boot-tagline">Live Snow Report</div>
+    <div class="boot-bar-wrap"><div class="boot-bar" id="bootBar"></div></div>
+    <div class="boot-status" id="bootStatus">Starting up…</div>
   </div>
+</div>
 
-  <div class="bg-layer" aria-hidden="true">
-    <svg id="tris-svg" xmlns="http://www.w3.org/2000/svg"></svg>
-    <div class="sweep"></div>
-    <div class="vignette"></div>
+<div class="bg-layer" aria-hidden="true">
+  <svg id="tris-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+  <div class="vignette"></div>
+</div>
+
+<nav class="nav reveal">
+  <div class="brand">SNOWFALL</div>
+  <div class="nav-status">
+    <div class="led"></div>
+    <span id="navCity">LIVE</span>
   </div>
+</nav>
 
-  <nav class="nav reveal">
-    <div class="brand">SNOWFALL</div>
-    <div class="nav-status"><div class="led"></div> SYSTEM ONLINE</div>
-  </nav>
+<main id="top">
+  <section class="hero">
+    <div class="wrap">
+      <div class="search-wrap reveal delay-1">
+        <input type="text" class="search-input" id="city" placeholder="ENTER A CITY (E.G. DENVER)" autocomplete="off">
+        <button class="search-btn" id="scanBtn">SEARCH</button>
+      </div>
 
-  <main id="top">
+      <div class="ticker-wrap reveal delay-2">
+        <div class="ticker-content" id="tickerText">READY — SEARCH A CITY TO BEGIN</div>
+      </div>
 
-    <section class="hero">
+      <div class="data-container">
+        <div class="hero-top reveal delay-3">
+          <div class="hero-loc">
+            <span class="micro">Current Location</span>
+            <span class="city" id="locName">—</span>
+            <span class="date" id="date">—</span>
+          </div>
+        </div>
+
+        <div class="hero-main">
+          <div class="hero-left reveal delay-4">
+            <div>
+              <div class="rate-label">Snow depth</div>
+              <div class="rate">
+                <span id="depth">0.0</span>
+                <span class="rate-unit"><span>IN</span><span>ON GROUND</span></span>
+              </div>
+            </div>
+            <div class="rows" style="margin-top:20px;" id="conditionRows">
+              <div id="row-rate"><span>Snowfall rate</span><span id="rate">—</span></div>
+              <div id="row-temp"><span>Temperature</span><span id="temp">—</span></div>
+              <div id="row-chill"><span>Wind chill</span><span id="chill">—</span></div>
+              <div id="row-wind"><span>Wind</span><span id="wind">—</span></div>
+            </div>
+            <div class="probs" style="margin-top:20px;">
+              <div class="label" style="border:none; margin-bottom:12px; padding:0; color:var(--cyan);"><span>Chance of snow</span></div>
+              <div id="probs"></div>
+            </div>
+          </div>
+
+          <div class="chart-panel hud-panel reveal delay-5">
+            <div class="chart-head">
+              <span class="title">SNOWFALL OVER TIME</span>
+              <div class="legend"><span>Past</span><span class="fc">Forecast</span></div>
+            </div>
+            <div class="chart">
+              <svg id="dyn-chart" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="chart-grad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="var(--cyan)" stop-opacity="0.3"/>
+                    <stop offset="100%" stop-color="var(--cyan)" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <line class="chart-grid" x1="0" y1="25" x2="100" y2="25" />
+                <line class="chart-grid" x1="0" y1="50" x2="100" y2="50" />
+                <line class="chart-grid" x1="0" y1="75" x2="100" y2="75" />
+                <path id="chart-fill-path" class="chart-fill" d="" />
+                <path id="chart-line-path" class="chart-line" d="" />
+              </svg>
+              <div class="forecast-chart-guide" id="chartGuide"></div>
+              <div class="chart-point-overlay" id="chart-point-overlay"></div>
+              <div class="empty-chart" id="empty-chart">NO SNOW EXPECTED</div>
+            </div>
+            <div class="chart-labels"><span>-12H</span><span>NOW</span><span>+12H</span></div>
+          </div>
+        </div>
+
+        <div class="readout reveal delay-5">
+          <div class="rcell"><div class="k">Past 24H</div><div class="v"><span id="t24">0.0</span><small>IN</small></div></div>
+          <div class="rcell"><div class="k">Past 48H</div><div class="v"><span id="t48">0.0</span><small>IN</small></div></div>
+          <div class="rcell"><div class="k">Next 72H</div><div class="v"><span id="n72">0.0</span><small>IN</small></div></div>
+          <div class="rcell"><div class="k">Season to date</div><div class="v"><span id="season">0.0</span><small>IN</small></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="data-container">
+    <section class="sec reveal delay-5" style="padding: 40px 0 80px;">
       <div class="wrap">
-        
-        <div class="search-wrap reveal delay-1">
-          <input type="text" class="search-input" id="city" placeholder="ENTER LOCATION FOR ANALYSIS (E.G. DENVER)..." autocomplete="off">
-          <button class="search-btn" id="scanBtn">SCAN</button>
+        <div class="sec-head">
+          <div>
+            <span class="micro">01 / Timeline</span>
+            <h2 class="h2">Forecast</h2>
+          </div>
+          <div class="peak-badge">
+            <span class="peak-k">HEAVIEST</span>
+            <span class="peak-v" id="peakValue">0.0″/HR</span>
+            <span class="peak-t" id="peakTime">—</span>
+          </div>
         </div>
-
-        <div class="ticker-wrap reveal delay-2">
-          <div class="ticker-content" id="tickerText">SYS.READY // AWAITING TELEMETRY STREAM</div>
-        </div>
-
-        <div class="data-container">
-          
-          <div class="hero-top reveal delay-3">
-            <div class="hero-loc">
-              <span class="micro">Telemetry Station</span>
-              <span class="city" id="locName">—</span>
-              <span class="date" id="date">—</span>
-            </div>
+        <div class="timeline-scroll">
+          <div class="timeline-inner">
+            <svg class="hourly-curve" viewBox="0 0 1200 130" preserveAspectRatio="none" aria-hidden="true">
+              <defs>
+                <linearGradient id="hourly-grad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="var(--cyan)" stop-opacity="0.28"/>
+                  <stop offset="100%" stop-color="var(--cyan)" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <path id="hourly-fill" fill="url(#hourly-grad)" d=""/>
+              <path id="hourly-line" fill="none" stroke="var(--cyan)" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round" d=""/>
+              <circle id="hourly-peak-dot" r="3.5" fill="var(--cyan)" cx="0" cy="0" style="display:none;"/>
+            </svg>
+            <div class="hourly-wrap" id="hourly"></div>
           </div>
-
-          <div class="hero-main">
-            
-            <div class="hero-left reveal delay-4">
-              <div>
-                <div class="rate-label">Snow depth</div>
-                <div class="rate">
-                  <span id="depth">0.0</span>
-                  <span class="rate-unit">
-                    <span>IN</span>
-                    <span>DEPTH</span>
-                  </span>
-                </div>
-              </div>
-
-              <div class="rows" style="margin-top:20px;" id="conditionRows">
-                <div id="row-rate"><span>Snowfall rate</span><span id="rate">—</span></div>
-                <div id="row-temp"><span>Temperature</span><span id="temp">—</span></div>
-                <div id="row-chill"><span>Wind chill</span><span id="chill">—</span></div>
-                <div id="row-wind"><span>Wind</span><span id="wind">—</span></div>
-              </div>
-
-              <div class="probs" style="margin-top:20px;">
-                <div class="label" style="border:none; margin-bottom:12px; padding:0; color:var(--cyan);"><span>Accumulation probability</span></div>
-                <div id="probs"></div>
-              </div>
-            </div>
-
-            <div class="chart-panel hud-panel reveal delay-5">
-              <div class="chart-head">
-                <span class="title">24H ACCUMULATION</span>
-                <div class="legend">
-                  <span>Past</span>
-                  <span class="fc">Forecast</span>
-                </div>
-              </div>
-              
-              <div class="chart">
-                <svg id="dyn-chart" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  <defs>
-                    <linearGradient id="chart-grad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stop-color="#00a8ff" stop-opacity="0.3"/>
-                      <stop offset="100%" stop-color="#00a8ff" stop-opacity="0"/>
-                    </linearGradient>
-                  </defs>
-                  <line class="chart-grid" x1="0" y1="25" x2="100" y2="25" />
-                  <line class="chart-grid" x1="0" y1="50" x2="100" y2="50" />
-                  <line class="chart-grid" x1="0" y1="75" x2="100" y2="75" />
-                  <path id="chart-fill-path" class="chart-fill" d="" />
-                  <path id="chart-line-path" class="chart-line" d="" />
-                  <circle id="chart-point" class="chart-point pulse" cx="50" cy="50" r="4" style="display:none;" />
-                </svg>
-                <div class="empty-chart" id="empty-chart">NO ACCUMULATION DETECTED</div>
-              </div>
-
-              <div class="chart-labels">
-                <span>-12H</span>
-                <span>NOW</span>
-                <span>+6H</span>
-              </div>
-            </div>
-
-          </div>
-
-          <div class="readout reveal delay-5">
-            <div class="rcell"><div class="k">Past 24H</div><div class="v"><span id="t24">0.0</span><small>IN</small></div></div>
-            <div class="rcell"><div class="k">Past 48H</div><div class="v"><span id="t48">0.0</span><small>IN</small></div></div>
-            <div class="rcell"><div class="k">Next 72H</div><div class="v"><span id="n72">0.0</span><small>IN</small></div></div>
-            <div class="rcell"><div class="k">Season to date</div><div class="v"><span id="season">0.0</span><small>IN</small></div></div>
-          </div>
-
         </div>
       </div>
     </section>
 
-    <div class="data-container">
-      <section class="sec reveal delay-5">
-        <div class="wrap">
-          <div class="sec-head">
-            <div><span class="micro">01 / Timeline</span><h2 class="h2">Forecast</h2></div>
-            <span class="micro">NEXT 12 HOURS</span>
+    <section class="sec reveal delay-5" style="padding: 0 0 80px;">
+      <div class="wrap">
+        <div class="signal-strip">
+          <div class="signal-cell">
+            <div class="signal-k">Next 24H</div>
+            <div class="signal-v"><span id="sig-n24">0.0</span><small>IN</small></div>
+            <div class="signal-s" id="sig-n24-sub">EXPECTED SNOWFALL</div>
           </div>
-          <div class="hourly-wrap" id="hourly"></div>
+          <div class="signal-cell">
+            <div class="signal-k">Peak rate</div>
+            <div class="signal-v"><span id="sig-peak">0.0</span><small>IN/HR</small></div>
+            <div class="signal-s" id="sig-peak-sub">—</div>
+          </div>
+          <div class="signal-cell">
+            <div class="signal-k">Snowfall window</div>
+            <div class="signal-v signal-v-time" id="sig-window">—</div>
+            <div class="signal-s" id="sig-window-sub">NEXT 12 HOURS</div>
+          </div>
+          <div class="signal-cell">
+            <div class="signal-k">Chance of snow</div>
+            <div class="signal-v"><span id="sig-prob">0</span><small>%</small></div>
+            <div class="signal-s" id="sig-prob-sub">FOR 1+ INCH</div>
+          </div>
         </div>
-      </section>
-
-      <div class="wrap grid g2 reveal delay-5" style="display:grid; grid-template-columns: 1.4fr 1fr; gap:24px; margin-bottom:120px;">
-        <section class="hud-panel" style="margin-bottom:0;">
-          <div class="label"><span>Historical analysis // season to date</span></div>
-          <canvas id="hist"></canvas>
-          <div class="micro" id="histNote" style="margin-top:16px;">—</div>
-        </section>
-        <section class="hud-panel" style="margin-bottom:0;">
-          <div class="label"><span>Surrounding area // 25 mi</span></div>
-          <table class="regional-table">
-            <thead>
-              <tr><th>Location</th><th class="bar-cell"></th><th class="num">Rate</th><th class="num">24H</th></tr>
-            </thead>
-            <tbody id="area"></tbody>
-          </table>
-        </section>
       </div>
-    </div>
+    </section>
 
-  </main>
+    <section class="sec reveal delay-5" style="padding: 0 0 100px;">
+      <div class="wrap">
+        <div class="sec-head">
+          <div>
+            <span class="micro">02 / Season</span>
+            <h2 class="h2">Season Total</h2>
+          </div>
+          <span class="micro">VS. 5-SEASON AVERAGE</span>
+        </div>
+        <div class="season-panel">
+          <div class="season-stat">
+            <div class="season-k">Season to date</div>
+            <div class="season-big"><span id="seasonBig">0.0</span><small>IN</small></div>
+            <div class="season-delta" id="seasonDelta">—</div>
+          </div>
+          <div class="season-chart-wrap">
+            <canvas id="hist"></canvas>
+          </div>
+        </div>
+        <div class="micro" id="histNote" style="margin-top:16px;">—</div>
+      </div>
+    </section>
 
-  <footer class="reveal delay-5">
-    <div class="wrap foot">
-      <span>SNOWFALL // SYS.V4</span>
-      <span id="footstamp">—</span>
-    </div>
-  </footer>
+    <section class="sec reveal delay-5" style="padding: 0 0 60px;">
+      <div class="wrap">
+        <div class="sec-head">
+          <div>
+            <span class="micro">03 / Nearby</span>
+            <h2 class="h2">Nearby Areas</h2>
+          </div>
+          <span class="micro">WITHIN 25 MI</span>
+        </div>
+        <div class="nearby-cards" id="area"></div>
+      </div>
+    </section>
+  </div>
+</main>
 
-  <script src="script.js"></script>
+<footer class="reveal delay-5">
+  <div class="wrap foot">
+    <span>SNOWFALL · V4</span>
+    <span id="footstamp">—</span>
+  </div>
+</footer>
+
+<div class="global-tooltip" id="globalTooltip"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   CONFIGURATION
+   ═══════════════════════════════════════════════════════ */
+const CONFIG = {
+  defaultCity: 'Bozeman',
+  cacheLifetimeMs: 10 * 60 * 1000,
+  minimumBootDisplayMs: 1600
+};
+
+
+/* ═══════════════════════════════════════════════════════
+   APP STATE
+   ═══════════════════════════════════════════════════════ */
+const appState = {
+  currentCity: CONFIG.defaultCity,
+  currentWeatherData: null,
+  isSearching: false,
+  resultCache: new Map(),
+  inFlightRequest: null
+};
+
+
+/* ═══════════════════════════════════════════════════════
+   TOOLTIP
+   ═══════════════════════════════════════════════════════ */
+const tooltip = {
+  element: null,
+
+  init() {
+    this.element = document.getElementById('globalTooltip');
+  },
+
+  show(clientX, clientY, htmlContent) {
+    if (!this.element) return;
+    this.element.innerHTML = htmlContent;
+    this.element.classList.add('visible');
+
+    const rect = this.element.getBoundingClientRect();
+    const margin = 12;
+    let left = clientX + 16;
+    let top = clientY + 16;
+
+    if (left + rect.width > window.innerWidth - margin) left = clientX - rect.width - 16;
+    if (top + rect.height > window.innerHeight - margin) top = clientY - rect.height - 16;
+    left = Math.max(margin, left);
+    top = Math.max(margin, top);
+
+    this.element.style.left = left + 'px';
+    this.element.style.top = top + 'px';
+  },
+
+  hide() {
+    if (this.element) this.element.classList.remove('visible');
+  }
+};
+
+
+/* ═══════════════════════════════════════════════════════
+   LOCATION NAME HELPER
+   ═══════════════════════════════════════════════════════ */
+function buildUniqueLocationParts(name, admin1, country) {
+  const seen = new Set();
+  const uniqueParts = [];
+
+  for (const rawPart of [name, admin1, country]) {
+    if (!rawPart) continue;
+    const key = rawPart.toLowerCase().trim();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    uniqueParts.push(rawPart);
+  }
+
+  return uniqueParts;
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   WEATHER API
+   ═══════════════════════════════════════════════════════ */
+const weatherApi = {
+
+  async getWeatherForCity(cityName) {
+    const cacheKey = cityName.toLowerCase();
+
+    const cached = appState.resultCache.get(cacheKey);
+    if (cached && Date.now() - cached.savedAt < CONFIG.cacheLifetimeMs) {
+      console.log(`[weatherApi] Cached result for "${cityName}"`);
+      return cached.data;
+    }
+
+    if (appState.inFlightRequest) appState.inFlightRequest.abort();
+    appState.inFlightRequest = new AbortController();
+    const { signal } = appState.inFlightRequest;
+
+    console.log(`[weatherApi] Fetching "${cityName}"`);
+
+    const location = await this.geocodeCity(cityName, signal);
+
+    const { latitude: lat, longitude: lon } = location;
+    const latOffset = 0.36;
+    const lonOffset = 0.36 / Math.cos(lat * Math.PI / 180);
+    const samplePoints = [
+      ['NORTH', lat + latOffset, lon],
+      ['EAST',  lat,             lon + lonOffset],
+      ['SOUTH', lat - latOffset, lon],
+      ['WEST',  lat,             lon - lonOffset]
+    ];
+
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - 7);
+    const seasonStartYear = cutoffDate.getMonth() >= 6
+      ? cutoffDate.getFullYear()
+      : cutoffDate.getFullYear() - 1;
+    const earliestHistoryDate = `${seasonStartYear - 5}-10-01`;
+    const toDateString = (date) => date.toISOString().slice(0, 10);
+
+    const forecastUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,wind_speed_10m&hourly=snowfall,snow_depth,temperature_2m,apparent_temperature,wind_speed_10m&daily=precipitation_probability_max&past_days=2&forecast_days=7&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto`;
+    const historyUrl  = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${earliestHistoryDate}&end_date=${toDateString(cutoffDate)}&daily=snowfall_sum&timezone=auto`;
+    const nearbyUrl   = `https://api.open-meteo.com/v1/forecast?latitude=${samplePoints.map(p => p[1].toFixed(3))}&longitude=${samplePoints.map(p => p[2].toFixed(3))}&current=temperature_2m&hourly=snowfall&past_days=1&forecast_days=1&timezone=auto`;
+
+    const [forecastResult, historyResult, nearbyResult] = await Promise.allSettled([
+      this.fetchJson(forecastUrl, signal),
+      this.fetchJson(historyUrl, signal),
+      this.fetchJson(nearbyUrl, signal)
+    ]);
+
+    if (forecastResult.status === 'rejected') {
+      throw new Error('Forecast API failed');
+    }
+
+    // Season totals stored in inches for consistency with the hero number
+    const seasons = [];
+    if (historyResult.status === 'fulfilled') {
+      const historyData = historyResult.value;
+      for (let yearsAgo = 5; yearsAgo >= 0; yearsAgo--) {
+        const seasonStart = seasonStartYear - yearsAgo;
+        const rangeStart = `${seasonStart}-10-01`;
+        const rangeEnd = toDateString(new Date(
+          cutoffDate.getFullYear() - yearsAgo,
+          cutoffDate.getMonth(),
+          cutoffDate.getDate()
+        ));
+
+        let centimeters = 0;
+        historyData.daily.time.forEach((dateStr, i) => {
+          if (dateStr >= rangeStart && dateStr <= rangeEnd) {
+            centimeters += historyData.daily.snowfall_sum[i] || 0;
+          }
+        });
+
+        seasons.push({
+          label: `${seasonStart}–${String(seasonStart + 1).slice(2)}`,
+          value: centimeters / 2.54,
+          current: yearsAgo === 0
+        });
+      }
+    }
+
+    const nearbyAreas = nearbyResult.status === 'fulfilled'
+      ? (Array.isArray(nearbyResult.value) ? nearbyResult.value : [nearbyResult.value])
+      : [];
+
+    const data = {
+      location,
+      forecast: forecastResult.value,
+      history: { seasons },
+      nearbyAreas
+    };
+
+    appState.resultCache.set(cacheKey, { savedAt: Date.now(), data });
+    return data;
+  },
+
+  async geocodeCity(cityName, signal) {
+    const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&count=1&language=en&format=json`;
+    const result = await this.fetchJson(url, signal);
+
+    if (!result.results?.length) {
+      throw new Error('Location not found');
+    }
+
+    const firstResult = result.results[0];
+    const uniqueParts = buildUniqueLocationParts(
+      firstResult.name,
+      firstResult.admin1,
+      firstResult.country
+    );
+
+    return {
+      name: uniqueParts[0] || 'Unknown',
+      region: uniqueParts.slice(1).join(', '),
+      latitude: firstResult.latitude,
+      longitude: firstResult.longitude
+    };
+  },
+
+  async fetchJson(url, signal) {
+    const response = await fetch(url, { signal });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const json = await response.json();
+    if (json.error) throw new Error(json.reason);
+    return json;
+  }
+};
+
+
+/* ═══════════════════════════════════════════════════════
+   WINTER WEATHER RISK CALCULATOR
+   ═══════════════════════════════════════════════════════
+   Based on National Weather Service thresholds:
+
+   SEVERE — equivalent to an official Warning:
+     • Winter Storm Warning: 6+ in forecast in 24h, or 4+ in 12h
+     • Blizzard Warning: wind ≥ 35 mph with active snowfall
+       (approximation — true blizzard also needs visibility
+        ≤ 1/4 mi for 3+ hours, which we can't read)
+     • Extreme Cold Warning: wind chill ≤ -25°F
+
+   MODERATE — equivalent to an official Advisory:
+     • Winter Weather Advisory: 3-5 in forecast in 24h
+     • Cold Weather Advisory: wind chill between -15°F and -24°F
+     • Blowing Snow Advisory: wind ≥ 25 mph with active snowfall
+
+   LOW — below all official advisory thresholds.
+
+   Snow depth is NOT part of the score — it's what's already on
+   the ground from past storms, not a measure of current hazard.
+   ═══════════════════════════════════════════════════════ */
+const riskCalculator = {
+
+  calculateRiskScore(conditions) {
+    const {
+      windChill,
+      windSpeed,
+      snowfallRate,
+      forecastSnowfall12h,
+      forecastSnowfall24h
+    } = conditions;
+
+    const reasons = [];
+
+    /* ───── SEVERE tier (Warning-level) ───── */
+
+    // Winter Storm Warning: heavy forecast accumulation
+    if (forecastSnowfall24h >= 6 || forecastSnowfall12h >= 4) {
+      reasons.push('Winter Storm Warning (heavy snow forecast)');
+    }
+
+    // Blizzard Warning: high wind + active snow
+    if (windSpeed >= 35 && snowfallRate >= 0.3) {
+      reasons.push('Blizzard Warning (35+ mph wind with heavy snow)');
+    }
+
+    // Extreme Cold Warning
+    if (windChill <= -25) {
+      reasons.push('Extreme Cold Warning (wind chill -25°F or below)');
+    }
+
+    if (reasons.length > 0) {
+      return { level: 'SEVERE', color: 'warn', reasons };
+    }
+
+    /* ───── MODERATE tier (Advisory-level) ───── */
+
+    // Winter Weather Advisory
+    if (forecastSnowfall24h >= 3) {
+      reasons.push('Winter Weather Advisory (snow forecast)');
+    }
+
+    // Cold Weather Advisory
+    if (windChill <= -15) {
+      reasons.push('Cold Weather Advisory (wind chill -15°F or below)');
+    }
+
+    // Blowing Snow Advisory
+    if (windSpeed >= 25 && snowfallRate > 0.05) {
+      reasons.push('Blowing Snow Advisory (wind + active snow)');
+    }
+
+    if (reasons.length > 0) {
+      return { level: 'MODERATE', color: 'yellow', reasons };
+    }
+
+    /* ───── LOW tier ───── */
+    return { level: 'LOW', color: 'blue', reasons: [] };
+  }
+};
+
+
+/* ═══════════════════════════════════════════════════════
+   SCREEN RENDERER
+   ═══════════════════════════════════════════════════════ */
+const screen = {
+
+  elements: {},
+
+  findElements() {
+    const ids = [
+      'depth', 'rate', 'temp', 'chill', 'wind',
+      't24', 't48', 'n72', 'season',
+      'locName', 'date', 'navCity',
+      'hourly', 'area', 'probs', 'tickerText',
+      'row-rate', 'row-temp', 'row-chill', 'row-wind',
+      'peakValue', 'peakTime',
+      'sig-n24', 'sig-n24-sub', 'sig-peak', 'sig-peak-sub',
+      'sig-window', 'sig-window-sub', 'sig-prob', 'sig-prob-sub',
+      'seasonBig', 'seasonDelta'
+    ];
+    ids.forEach(id => {
+      this.elements[id] = document.getElementById(id);
+    });
+
+    this.forecastChart = {
+      line: document.getElementById('chart-line-path'),
+      fill: document.getElementById('chart-fill-path'),
+      point: document.getElementById('chart-point-overlay'),
+      guide: document.getElementById('chartGuide'),
+      emptyMessage: document.getElementById('empty-chart'),
+      values: [],
+      baseHourIndex: 0,
+      hourlyData: null
+    };
+    this.hourlyCurve = {
+      line: document.getElementById('hourly-line'),
+      fill: document.getElementById('hourly-fill'),
+      peakDot: document.getElementById('hourly-peak-dot')
+    };
+    this.seasonChart = {
+      canvas: document.getElementById('hist'),
+      bars: []
+    };
+  },
+
+
+  /* ─────────────── MAIN RENDER ─────────────── */
+
+  renderWeatherReport(data) {
+    const { location, forecast, history, nearbyAreas } = data;
+    const currentHourIndex = this.findCurrentHourIndex(forecast);
+    const hourlyForecast = forecast.hourly;
+    const currentWeather = forecast.current;
+
+    const fullLocationName = [location.name, location.region]
+      .filter(Boolean)
+      .join(', ')
+      .toUpperCase();
+    this.elements.locName.textContent = fullLocationName;
+    this.elements.navCity.textContent = fullLocationName;
+    this.elements.date.textContent =
+      new Date().toLocaleDateString('en-US', {
+        weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+      }).toUpperCase() + ' // ' +
+      new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    const snowDepth = (hourlyForecast.snow_depth[currentHourIndex] || 0) * 39.37;
+    const snowfallRate = this.centimetersToInches(hourlyForecast.snowfall[currentHourIndex]);
+    const past24h = this.centimetersToInches(this.sumArrayRange(hourlyForecast.snowfall, currentHourIndex - 23, currentHourIndex));
+    const past48h = this.centimetersToInches(this.sumArrayRange(hourlyForecast.snowfall, currentHourIndex - 47, currentHourIndex));
+    const next72h = this.centimetersToInches(this.sumArrayRange(hourlyForecast.snowfall, currentHourIndex + 1, currentHourIndex + 72));
+    const next24h = this.centimetersToInches(this.sumArrayRange(hourlyForecast.snowfall, currentHourIndex + 1, currentHourIndex + 24));
+    const next12h = this.centimetersToInches(this.sumArrayRange(hourlyForecast.snowfall, currentHourIndex + 1, currentHourIndex + 12));
+    const seasonTotal = history.seasons.length
+      ? history.seasons[history.seasons.length - 1].value
+      : 0;
+
+    this.animateNumber(this.elements.depth, snowDepth);
+    this.animateNumber(this.elements.t24, past24h);
+    this.animateNumber(this.elements.t48, past48h);
+    this.animateNumber(this.elements.n72, next72h);
+    this.animateNumber(this.elements.season, seasonTotal);
+    this.animateNumber(this.elements.seasonBig, seasonTotal);
+
+    this.elements.rate.textContent  = `${snowfallRate.toFixed(2)} IN/HR`;
+    this.elements.temp.textContent  = `${Math.round(currentWeather.temperature_2m)}°F`;
+    this.elements.chill.textContent = `${Math.round(currentWeather.apparent_temperature)}°F`;
+    this.elements.wind.textContent  = `${Math.round(currentWeather.wind_speed_10m)} MPH`;
+
+    // Risk calculation — uses the new standards-based logic
+    const risk = riskCalculator.calculateRiskScore({
+      windChill: currentWeather.apparent_temperature,
+      windSpeed: currentWeather.wind_speed_10m,
+      snowfallRate,
+      forecastSnowfall12h: next12h,
+      forecastSnowfall24h: next24h
+    });
+    this.updateRiskIndicators(risk, currentWeather, snowfallRate, next12h, next24h);
+
+    const precipitationChance = Math.max(
+      ...forecast.daily.precipitation_probability_max.slice(2, 5).map(v => v || 0)
+    );
+    const calculateChance = (threshold) => Math.round(
+      100 * (next72h >= threshold
+        ? Math.max(precipitationChance / 100, 0.6)
+        : (precipitationChance / 100) * Math.pow(Math.min(next72h / threshold, 1), 2))
+    );
+
+    this.renderChanceBars([1, 3, 6].map(calculateChance));
+    this.renderHourlyTimeline(hourlyForecast, currentHourIndex);
+    this.renderSignalStrip(hourlyForecast, currentHourIndex, next24h, calculateChance(1));
+    this.drawForecastChart(hourlyForecast, currentHourIndex);
+    this.drawSeasonComparison(history.seasons);
+    this.renderNearbyCards(nearbyAreas);
+  },
+
+
+  /* ─────────────── RISK INDICATORS ─────────────── */
+
+  updateRiskIndicators(risk, currentWeather, snowfallRate, next12h, next24h) {
+    let tickerClass = 'ok';
+    if (risk.level === 'MODERATE') tickerClass = 'warn';
+    if (risk.level === 'SEVERE') tickerClass = 'alert';
+
+    // Show the standard name that triggered the alert (e.g. "Winter Storm Warning")
+    // or the raw level if no specific reason exists
+    const primaryReason = risk.reasons.length > 0
+      ? risk.reasons[0].replace(/\s*\(.*\)$/, '')   // strip the parenthetical explanation
+      : (risk.level === 'LOW' ? 'ALL CLEAR' : risk.level);
+
+    const tickerHtml = `
+      <span class="ticker-item ${tickerClass}">[ ${primaryReason} ]</span>
+      <span class="ticker-item">TEMP: ${Math.round(currentWeather.temperature_2m)}°F</span>
+      <span class="ticker-item">WIND: ${Math.round(currentWeather.wind_speed_10m)} MPH</span>
+      <span class="ticker-item">SNOW: ${snowfallRate.toFixed(2)} IN/HR</span>
+      <span class="ticker-item">NEXT 24H: ${next24h.toFixed(1)} IN</span>
+      <span class="ticker-item">///</span>
+    `;
+    this.elements.tickerText.innerHTML = tickerHtml + tickerHtml;
+
+    // Clear prior highlights
+    ['row-rate', 'row-temp', 'row-chill', 'row-wind'].forEach(id => {
+      this.elements[id].className = '';
+    });
+
+    if (risk.color === 'blue') return;
+
+    const highlightClass = 'highlight-' + risk.color;
+
+    // Highlight each row only when it contributes to an official threshold
+    if (next24h >= 3 || next12h >= 4 || snowfallRate >= 0.3) {
+      this.elements['row-rate'].className = highlightClass;
+    }
+    if (currentWeather.apparent_temperature <= -15) {
+      this.elements['row-temp'].className = highlightClass;
+    }
+    if (currentWeather.apparent_temperature <= -15) {
+      this.elements['row-chill'].className = highlightClass;
+    }
+    if (
+      (currentWeather.wind_speed_10m >= 25 && snowfallRate > 0.05) ||
+      (currentWeather.wind_speed_10m >= 35 && snowfallRate >= 0.3)
+    ) {
+      this.elements['row-wind'].className = highlightClass;
+    }
+  },
+
+
+  /* ─────────────── HOURLY TIMELINE ─────────────── */
+
+  renderHourlyTimeline(hourlyForecast, currentHourIndex) {
+    let html = '';
+    const snowfallValues = [];
+
+    for (let i = currentHourIndex; i <= currentHourIndex + 11; i++) {
+      const snowfall = this.centimetersToInches(hourlyForecast.snowfall[i]);
+      snowfallValues.push(snowfall);
+      const hoursFromNow = i - currentHourIndex;
+      const hourLabel = hoursFromNow === 0 ? 'NOW' : '+' + hoursFromNow + 'H';
+      const timeLabel = (hourlyForecast.time[i] || '').slice(11, 16);
+
+      const tempValue = Math.round(hourlyForecast.temperature_2m?.[i] ?? 0);
+      const windValue = Math.round(hourlyForecast.wind_speed_10m?.[i] ?? 0);
+
+      // Intensity based on standard meteorological bands:
+      //   light:  0.01 – 0.10 in/hr
+      //   moderate: 0.11 – 0.30 in/hr
+      //   heavy:  0.31+ in/hr
+      let icon = '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>';
+      if (snowfall > 0.3) {
+        icon = '<svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="1.4" fill="none"><line x1="12" y1="2" x2="12" y2="22"/><line x1="3.5" y1="7" x2="20.5" y2="17"/><line x1="3.5" y1="17" x2="20.5" y2="7"/></svg>';
+      } else if (snowfall > 0) {
+        icon = '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M18 9h-1.26A8 8 0 1 0 9 19h9a5 5 0 0 0 0-10z" opacity="0.7"/><circle cx="8" cy="21" r="0.9"/><circle cx="12" cy="22" r="0.9"/><circle cx="16" cy="21" r="0.9"/></svg>';
+      }
+
+      const intensityClass = snowfall > 0.3 ? 'hv' : snowfall > 0 ? 'md' : 'lt';
+      const intensityLabel = snowfall > 0.3 ? 'HEAVY' : snowfall > 0.1 ? 'MOD' : snowfall > 0 ? 'LIGHT' : 'NONE';
+
+      html += `<div class="hour${hoursFromNow === 0 ? ' now' : ''}"
+          data-when="${hourLabel} · ${timeLabel}"
+          data-rate="${snowfall.toFixed(2)}"
+          data-temp="${tempValue}°F"
+          data-wind="${windValue} MPH">
+        <div class="t">${hourLabel}</div>
+        <div class="node"></div>
+        <div class="i">${icon}</div>
+        <div class="amt">${snowfall.toFixed(1)}<small>″</small></div>
+        <div class="intensity ${intensityClass}">${intensityLabel}</div>
+      </div>`;
+    }
+
+    this.elements.hourly.innerHTML = html;
+    this.drawTimelineCurve(snowfallValues);
+
+    const peakRate = Math.max(...snowfallValues, 0);
+    const peakIndex = snowfallValues.indexOf(peakRate);
+    this.elements.peakValue.textContent = `${peakRate.toFixed(2)}″/HR`;
+    this.elements.peakTime.textContent = peakRate > 0.05
+      ? (peakIndex === 0 ? '@ NOW' : `@ +${peakIndex}H`)
+      : '—';
+  },
+
+  drawTimelineCurve(snowfallValues) {
+    const { line, fill, peakDot } = this.hourlyCurve;
+    const peakValue = Math.max(...snowfallValues, 0);
+
+    if (peakValue < 0.05) {
+      line.setAttribute('d', '');
+      fill.setAttribute('d', '');
+      peakDot.style.display = 'none';
+      return;
+    }
+
+    const scaleMax = peakValue * 1.15;
+    const points = snowfallValues.map((v, i) => ({
+      x: (i + 0.5) * 100,
+      y: 130 - (v / scaleMax) * 100 - 15
+    }));
+
+    let path = `M ${points[0].x} ${points[0].y}`;
+    for (let i = 0; i < points.length - 1; i++) {
+      const prev = points[i - 1] || points[i];
+      const curr = points[i];
+      const next = points[i + 1];
+      const afterNext = points[i + 2] || next;
+
+      const c1x = curr.x + (next.x - prev.x) / 6;
+      const c1y = curr.y + (next.y - prev.y) / 6;
+      const c2x = next.x - (afterNext.x - curr.x) / 6;
+      const c2y = next.y - (afterNext.y - curr.y) / 6;
+
+      path += ` C ${c1x.toFixed(1)} ${c1y.toFixed(1)}, ${c2x.toFixed(1)} ${c2y.toFixed(1)}, ${next.x} ${next.y}`;
+    }
+
+    line.setAttribute('d', path);
+    fill.setAttribute('d', `${path} L ${points[points.length - 1].x} 130 L ${points[0].x} 130 Z`);
+
+    const peakIndex = snowfallValues.indexOf(peakValue);
+    peakDot.setAttribute('cx', points[peakIndex].x);
+    peakDot.setAttribute('cy', points[peakIndex].y);
+    peakDot.style.display = 'block';
+  },
+
+
+  /* ─────────────── SIGNAL STRIP ─────────────── */
+
+  renderSignalStrip(hourlyForecast, currentHourIndex, next24h, chanceFor1Inch) {
+    const snowfallValues = [];
+    for (let i = currentHourIndex; i <= currentHourIndex + 11; i++) {
+      snowfallValues.push(this.centimetersToInches(hourlyForecast.snowfall[i]));
+    }
+
+    const peakRate = Math.max(...snowfallValues, 0);
+    const peakIndex = snowfallValues.indexOf(peakRate);
+    const peakLabel = peakIndex === 0 ? 'AT NOW' : `AT +${peakIndex}H`;
+
+    let firstSnowHour = -1, lastSnowHour = -1;
+    for (let i = 0; i < snowfallValues.length; i++) {
+      if (snowfallValues[i] >= 0.05) {
+        if (firstSnowHour === -1) firstSnowHour = i;
+        lastSnowHour = i;
+      }
+    }
+
+    const formatHourTime = (index) => {
+      const time = hourlyForecast.time[currentHourIndex + index];
+      return time ? time.slice(11, 16) : '—';
+    };
+
+    const snowfallWindow = firstSnowHour >= 0
+      ? (firstSnowHour === lastSnowHour
+          ? formatHourTime(firstSnowHour)
+          : `${formatHourTime(firstSnowHour)}–${formatHourTime(lastSnowHour)}`)
+      : '—';
+
+    const windowSub = firstSnowHour >= 0
+      ? `${lastSnowHour - firstSnowHour + 1} HR PERIOD`
+      : 'NO SNOW EXPECTED';
+
+    this.elements['sig-n24'].textContent = next24h.toFixed(1);
+    this.elements['sig-n24-sub'].textContent = next24h > 0.05 ? 'EXPECTED SNOWFALL' : 'NO SNOW EXPECTED';
+    this.elements['sig-peak'].textContent = peakRate.toFixed(2);
+    this.elements['sig-peak-sub'].textContent = peakRate > 0.05 ? `IN/HR ${peakLabel}` : 'NO SNOW FALLING';
+    this.elements['sig-window'].textContent = snowfallWindow;
+    this.elements['sig-window-sub'].textContent = windowSub;
+    this.elements['sig-prob'].textContent = chanceFor1Inch;
+  },
+
+
+  /* ─────────────── 24H FORECAST CHART ─────────────── */
+
+  drawForecastChart(hourlyForecast, currentHourIndex) {
+    const values = [];
+    for (let i = currentHourIndex - 12; i <= currentHourIndex + 12; i++) {
+      values.push(this.centimetersToInches(hourlyForecast.snowfall[i]));
+    }
+
+    this.forecastChart.values = values;
+    this.forecastChart.baseHourIndex = currentHourIndex;
+    this.forecastChart.hourlyData = hourlyForecast;
+
+    const peakValue = Math.max(...values, 0);
+    if (peakValue <= 0.2) {
+      this.forecastChart.emptyMessage.classList.add('visible');
+      this.forecastChart.line.setAttribute('d', '');
+      this.forecastChart.fill.setAttribute('d', '');
+      this.forecastChart.point.style.display = 'none';
+      return;
+    }
+    this.forecastChart.emptyMessage.classList.remove('visible');
+
+    const scaleMax = peakValue * 1.15;
+    const points = values.map((v, i) => ({
+      x: (i / 24) * 100,
+      y: 100 - (v / scaleMax) * 80 - 10
+    }));
+    const path = points
+      .map((p, i) => (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ',' + p.y.toFixed(1))
+      .join(' ');
+
+    this.forecastChart.line.setAttribute('d', path);
+    this.forecastChart.fill.setAttribute('d', path + ' L100,100 L0,100 Z');
+    this.forecastChart.point.style.left = points[12].x + '%';
+    this.forecastChart.point.style.top  = points[12].y + '%';
+    this.forecastChart.point.style.display = 'block';
+  },
+
+
+  /* ─────────────── SEASON COMPARISON CHART ─────────────── */
+
+  drawSeasonComparison(seasons) {
+    const canvas = this.seasonChart.canvas;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = canvas.clientWidth * dpr;
+    canvas.height = canvas.clientHeight * dpr;
+    ctx.scale(dpr, dpr);
+
+    this.seasonChart.bars = [];
+
+    if (!seasons || seasons.length === 0) {
+      ctx.font = '10px ui-monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#6a7580';
+      ctx.fillText('HISTORICAL DATA UNAVAILABLE', canvas.clientWidth / 2, canvas.clientHeight / 2);
+      document.getElementById('histNote').textContent = '';
+      this.elements.seasonDelta.textContent = '—';
+      this.elements.seasonDelta.className = 'season-delta';
+      return;
+    }
+
+    const maxValue = Math.max(...seasons.map(s => s.value), 1) * 1.15;
+    const barWidth = (canvas.clientWidth - 64) / seasons.length;
+
+    ctx.font = '10px ui-monospace';
+    ctx.textAlign = 'center';
+
+    seasons.forEach((season, i) => {
+      const barHeight = (season.value / maxValue) * (canvas.clientHeight - 60);
+      const x = 32 + i * barWidth + barWidth * 0.15;
+      const y = canvas.clientHeight - 30 - barHeight;
+
+      ctx.fillStyle = season.current ? '#1a5276' : '#b0bcc6';
+      ctx.fillRect(x, y, barWidth * 0.7, barHeight);
+
+      ctx.fillStyle = season.current ? '#1a5276' : '#6a7580';
+      ctx.fillText(season.value.toFixed(1), x + barWidth * 0.35, y - 8);
+      ctx.fillText(season.label, x + barWidth * 0.35, canvas.clientHeight - 10);
+
+      this.seasonChart.bars.push({
+        x, y,
+        width: barWidth * 0.7,
+        height: Math.max(barHeight, 4),
+        season
+      });
+    });
+
+    const pastSeasons = seasons.filter(s => !s.current);
+    const average = pastSeasons.length
+      ? pastSeasons.reduce((sum, s) => sum + s.value, 0) / pastSeasons.length
+      : 0;
+    const averageY = canvas.clientHeight - 30 - (average / maxValue) * (canvas.clientHeight - 60);
+
+    ctx.strokeStyle = '#0b2d4a';
+    ctx.setLineDash([5, 5]);
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(32, averageY);
+    ctx.lineTo(canvas.clientWidth - 32, averageY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.lineWidth = 1;
+
+    ctx.fillStyle = '#0b2d4a';
+    ctx.textAlign = 'left';
+    ctx.font = '9px ui-monospace';
+    ctx.fillText(`5-SEASON AVG ${average.toFixed(1)}`, 32, averageY - 6);
+
+    const currentSeasonValue = seasons[seasons.length - 1].value;
+    const percentChange = average
+      ? Math.round(((currentSeasonValue - average) / average) * 100)
+      : 0;
+
+    this.elements.seasonDelta.textContent =
+      `${percentChange >= 0 ? '+' : ''}${percentChange}% VS AVG`;
+    this.elements.seasonDelta.className =
+      'season-delta ' + (percentChange >= 0 ? 'pos' : 'neg');
+    document.getElementById('histNote').textContent =
+      `CURRENT SEASON ${percentChange >= 0 ? '+' : ''}${percentChange}% VS 5-SEASON AVERAGE`;
+  },
+
+
+  /* ─────────────── CHANCE BARS ─────────────── */
+
+  renderChanceBars(chanceValues) {
+    const labels = ['1+ IN', '3+ IN', '6+ IN'];
+    this.elements.probs.innerHTML = chanceValues.map((chance, i) =>
+      `<div class="prob">
+        <div class="top"><span>${labels[i]}</span><span>${chance}%</span></div>
+        <div class="bar"><i data-width="${chance}"></i></div>
+      </div>`
+    ).join('');
+
+    setTimeout(() => {
+      this.elements.probs.querySelectorAll('.bar i').forEach(bar => {
+        bar.style.width = bar.dataset.width + '%';
+      });
+    }, 100);
+  },
+
+
+  /* ─────────────── NEARBY AREAS ─────────────── */
+
+  renderNearbyCards(nearbyAreas) {
+    if (!nearbyAreas || nearbyAreas.length === 0) {
+      this.elements.area.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;font-family:var(--mono);font-size:11px;letter-spacing:0.2em;color:var(--mute);text-transform:uppercase;">DATA UNAVAILABLE</div>';
+      return;
+    }
+
+    const cards = nearbyAreas.map((area) => {
+      const hourIndex = this.findCurrentHourIndex(area);
+      return {
+        rate: this.centimetersToInches(area.hourly.snowfall[hourIndex]),
+        dayTotal: this.centimetersToInches(
+          this.sumArrayRange(area.hourly.snowfall, hourIndex - 23, hourIndex)
+        ),
+        temperature: Math.round(area.current?.temperature_2m ?? 0)
+      };
+    });
+
+    const maxDayTotal = Math.max(...cards.map(c => c.dayTotal), 0.1);
+
+    this.elements.area.innerHTML = cards.map((card, i) => {
+      const barWidthPercent = (card.dayTotal / maxDayTotal) * 100;
+      const direction = ['NORTH', 'EAST', 'SOUTH', 'WEST'][i] || 'SECTOR';
+      return `<div class="nearby-card"
+          data-direction="${direction}"
+          data-rate="${card.rate.toFixed(2)}"
+          data-total="${card.dayTotal.toFixed(1)}"
+          data-temp="${card.temperature}°F">
+        <div class="nearby-direction">${direction}</div>
+        <div class="nearby-label">NEARBY AREA</div>
+        <div class="nearby-rate">${card.rate.toFixed(2)}<small>″/H</small></div>
+        <div class="nearby-bar"><i data-width="${barWidthPercent.toFixed(1)}"></i></div>
+        <div class="nearby-total"><span>24H</span><span>${card.dayTotal.toFixed(1)}″</span></div>
+      </div>`;
+    }).join('');
+
+    requestAnimationFrame(() => {
+      this.elements.area.querySelectorAll('.nearby-bar i').forEach(bar => {
+        bar.style.width = bar.dataset.width + '%';
+      });
+    });
+  },
+
+
+  /* ─────────────── SMALL HELPERS ─────────────── */
+
+  animateNumber(element, targetValue, decimals = 1) {
+    if (element._animationFrame) cancelAnimationFrame(element._animationFrame);
+    const startTime = performance.now();
+    const duration = 900;
+
+    const step = (now) => {
+      const progress = Math.min((now - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      element.textContent = (targetValue * eased).toFixed(decimals);
+      if (progress < 1) {
+        element._animationFrame = requestAnimationFrame(step);
+      } else {
+        element._animationFrame = null;
+      }
+    };
+    element._animationFrame = requestAnimationFrame(step);
+  },
+
+  centimetersToInches(cm) {
+    return (cm || 0) / 2.54;
+  },
+
+  sumArrayRange(array, startIndex, endIndex) {
+    return array
+      .slice(Math.max(0, startIndex), endIndex + 1)
+      .reduce((total, value) => total + (value || 0), 0);
+  },
+
+  findCurrentHourIndex(weatherData) {
+    if (!weatherData?.current?.time || !weatherData?.hourly?.time) return 24;
+
+    const currentHourString = weatherData.current.time.slice(0, 13) + ':00';
+    const exactMatch = weatherData.hourly.time.indexOf(currentHourString);
+    if (exactMatch >= 0) return exactMatch;
+
+    const localDate = weatherData.current.time.slice(0, 10);
+    const startOfDay = weatherData.hourly.time.findIndex(t => t.startsWith(localDate));
+    const localHour = parseInt(weatherData.current.time.slice(11, 13), 10) || 0;
+    return startOfDay >= 0 ? startOfDay + localHour : 24;
+  }
+};
+
+
+/* ═══════════════════════════════════════════════════════
+   HOVER HANDLERS
+   ═══════════════════════════════════════════════════════ */
+const hoverHandlers = {
+
+  attachForecastChart() {
+    const chart = document.querySelector('.chart');
+    const guide = screen.forecastChart.guide;
+
+    chart.addEventListener('mousemove', (event) => {
+      const rect = chart.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const percent = x / rect.width;
+      const rawIndex = Math.round(percent * 24);
+      const index = Math.max(0, Math.min(24, rawIndex));
+      const value = screen.forecastChart.values[index];
+
+      if (value === undefined) return;
+
+      // Position the vertical guide at the hovered hour
+      guide.style.left = ((index / 24) * 100) + '%';
+      guide.classList.add('visible');
+
+      const hourOffset = index - 12;
+      const label = hourOffset === 0 ? 'NOW' : (hourOffset > 0 ? `+${hourOffset}H` : `${hourOffset}H`);
+      const data = screen.forecastChart.hourlyData;
+      const base = screen.forecastChart.baseHourIndex;
+      const temp = Math.round(data.temperature_2m?.[base + hourOffset] ?? 0);
+      const wind = Math.round(data.wind_speed_10m?.[base + hourOffset] ?? 0);
+
+      tooltip.show(event.clientX, event.clientY, `
+        <span class="tt-label">${label}</span>
+        <div class="tt-row"><span>Snowfall</span><span>${value.toFixed(2)} in/hr</span></div>
+        <div class="tt-row"><span>Temp</span><span>${temp}°F</span></div>
+        <div class="tt-row"><span>Wind</span><span>${wind} mph</span></div>
+      `);
+    });
+
+    chart.addEventListener('mouseleave', () => {
+      guide.classList.remove('visible');
+      tooltip.hide();
+    });
+  },
+
+  attachHourlyCells() {
+    const container = document.getElementById('hourly');
+    container.addEventListener('mouseover', (event) => {
+      const hour = event.target.closest('.hour');
+      if (!hour) return;
+      tooltip.show(event.clientX, event.clientY, `
+        <span class="tt-label">${hour.dataset.when}</span>
+        <div class="tt-row"><span>Snowfall</span><span>${hour.dataset.rate} in/hr</span></div>
+        <div class="tt-row"><span>Temp</span><span>${hour.dataset.temp}</span></div>
+        <div class="tt-row"><span>Wind</span><span>${hour.dataset.wind}</span></div>
+      `);
+    });
+    container.addEventListener('mouseout', (event) => {
+      if (!event.relatedTarget || !event.relatedTarget.closest || !event.relatedTarget.closest('.hour')) {
+        tooltip.hide();
+      }
+    });
+  },
+
+  attachNearbyCards() {
+    const container = document.getElementById('area');
+    container.addEventListener('mouseover', (event) => {
+      const card = event.target.closest('.nearby-card');
+      if (!card) return;
+      tooltip.show(event.clientX, event.clientY, `
+        <span class="tt-label">${card.dataset.direction} AREA</span>
+        <div class="tt-row"><span>Rate</span><span>${card.dataset.rate} in/hr</span></div>
+        <div class="tt-row"><span>24H total</span><span>${card.dataset.total} in</span></div>
+        <div class="tt-row"><span>Temp</span><span>${card.dataset.temp}</span></div>
+      `);
+    });
+    container.addEventListener('mouseout', (event) => {
+      if (!event.relatedTarget || !event.relatedTarget.closest || !event.relatedTarget.closest('.nearby-card')) {
+        tooltip.hide();
+      }
+    });
+  },
+
+  attachSeasonChart() {
+    const canvas = screen.seasonChart.canvas;
+    canvas.addEventListener('mousemove', (event) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+
+      const bar = screen.seasonChart.bars.find(b =>
+        x >= b.x && x <= b.x + b.width && y >= b.y && y <= b.y + b.height
+      );
+
+      if (!bar) {
+        tooltip.hide();
+        return;
+      }
+
+      tooltip.show(event.clientX, event.clientY, `
+        <span class="tt-label">${bar.season.label}${bar.season.current ? ' · CURRENT' : ''}</span>
+        <div class="tt-row"><span>Season total</span><span>${bar.season.value.toFixed(1)} in</span></div>
+      `);
+    });
+    canvas.addEventListener('mouseleave', () => tooltip.hide());
+  }
+};
+
+
+/* ═══════════════════════════════════════════════════════
+   SEARCH CONTROLLER
+   ═══════════════════════════════════════════════════════ */
+async function searchForCity(cityName) {
+  if (appState.isSearching) return;
+
+  const searchButton = document.getElementById('scanBtn');
+  appState.isSearching = true;
+  document.body.classList.add('is-loading');
+  searchButton.disabled = true;
+  searchButton.textContent = 'LOADING';
+  screen.elements.locName.textContent = 'LOADING WEATHER DATA…';
+
+  try {
+    const data = await weatherApi.getWeatherForCity(cityName);
+    appState.currentWeatherData = data;
+    screen.renderWeatherReport(data);
+  } catch (error) {
+    if (error.name === 'AbortError') return;
+    console.error('[search]', error);
+    screen.elements.locName.textContent = 'UNABLE TO LOAD';
+    screen.elements.tickerText.innerHTML =
+      `<span class="ticker-item alert">ERROR: ${error.message.toUpperCase()}</span>`;
+  } finally {
+    appState.isSearching = false;
+    document.body.classList.remove('is-loading');
+    searchButton.disabled = false;
+    searchButton.textContent = 'SEARCH';
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   BOOT SEQUENCE
+   ═══════════════════════════════════════════════════════ */
+async function runBootSequence() {
+  const bootScreen = document.getElementById('boot');
+  const progressBar = document.getElementById('bootBar');
+  const statusText = document.getElementById('bootStatus');
+
+  const setProgress = (percent, message) => {
+    progressBar.style.width = percent + '%';
+    statusText.textContent = message;
+  };
+  const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+  const bootStart = performance.now();
+
+  const dataPromise = weatherApi.getWeatherForCity(CONFIG.defaultCity)
+    .then(data => ({ success: true, data }))
+    .catch(error => ({ success: false, error }));
+
+  setProgress(15, 'Connecting to weather service…');
+  await wait(450);
+
+  setProgress(45, 'Loading forecast data…');
+  await wait(450);
+
+  setProgress(70, 'Preparing your report…');
+
+  const [result] = await Promise.all([
+    dataPromise,
+    wait(Math.max(0, CONFIG.minimumBootDisplayMs - (performance.now() - bootStart)))
+  ]);
+
+  setProgress(100, 'Ready');
+  await wait(350);
+
+  bootScreen.classList.add('hidden');
+  document.body.classList.add('loaded');
+  window.scrollTo(0, 0);
+  setTimeout(() => bootScreen.remove(), 600);
+
+  if (result.success) {
+    appState.currentWeatherData = result.data;
+    screen.renderWeatherReport(result.data);
+  } else if (result.error.name !== 'AbortError') {
+    console.error('[boot]', result.error);
+    screen.elements.locName.textContent = 'UNABLE TO LOAD';
+    screen.elements.tickerText.innerHTML =
+      `<span class="ticker-item alert">ERROR: ${result.error.message.toUpperCase()}</span>`;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   BACKGROUND ANIMATION
+   ═══════════════════════════════════════════════════════ */
+function buildTriangleBackground() {
+  const svg = document.getElementById('tris-svg');
+  const tones = [
+    ['#bcc5cd', '#a0abb5'],
+    ['#a3aeb8', '#8996a1'],
+    ['#9ba6b1', '#8794a1']
+  ];
+
+  const build = () => {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const isMobile = vw < 768;
+    const W = vw / (isMobile ? 3.5 : 6.5);
+    const H = W * 0.866;
+    const PAD = 3;
+    const cols = Math.ceil(vw / (W / 2)) + 4;
+    const rows = Math.ceil(vh / H) + 3;
+
+    const polygons = [];
+    let defs = '<defs>';
+
+    tones.forEach((tone, toneIndex) => {
+      [0, 1].forEach((direction) => {
+        const corners = direction === 0
+          ? ['0%', '0%', '100%', '100%']
+          : ['100%', '0%', '0%', '100%'];
+        defs += `<linearGradient id="g${toneIndex}${direction}" x1="${corners[0]}" y1="${corners[1]}" x2="${corners[2]}" y2="${corners[3]}">
+          <stop offset="0%" stop-color="${tone[0]}"/>
+          <stop offset="100%" stop-color="${tone[1]}"/>
+        </linearGradient>`;
+      });
+    });
+    defs += '</defs>';
+
+    for (let row = -1; row <= rows; row++) {
+      for (let col = -2; col <= cols; col++) {
+        const left = col * (W / 2);
+        const top = row * H;
+        const isUp = (col + row) % 2 === 0;
+        const direction = isUp ? 0 : 1;
+
+        const points = isUp
+          ? `${left + W/2},${top - PAD} ${left - PAD},${top + H + PAD} ${left + W + PAD},${top + H + PAD}`
+          : `${left - PAD},${top - PAD} ${left + W + PAD},${top - PAD} ${left + W/2},${top + H + PAD}`;
+
+        const baseDelay = -(Math.abs(row * 0.83 + col * 0.61) % 15);
+
+        let cellHtml = '';
+        for (let layer = 0; layer < 3; layer++) {
+          cellHtml += `<polygon class="tri" points="${points}" fill="url(#g${layer}${direction})" style="animation-delay:${(baseDelay - layer * 5).toFixed(2)}s"/>`;
+        }
+        polygons.push(cellHtml);
+      }
+    }
+
+    svg.innerHTML = defs + `<rect width="100%" height="100%" fill="var(--bg)"/><g>${polygons.join('')}</g>`;
+    svg.setAttribute('viewBox', `0 0 ${vw} ${vh}`);
+    svg.setAttribute('preserveAspectRatio', 'none');
+  };
+
+  build();
+
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(build, 200);
+  });
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   INITIALIZATION
+   ═══════════════════════════════════════════════════════ */
+function initializeApp() {
+  screen.findElements();
+  tooltip.init();
+
+  // Attach hover handlers once — event delegation handles re-renders
+  hoverHandlers.attachForecastChart();
+  hoverHandlers.attachHourlyCells();
+  hoverHandlers.attachNearbyCards();
+  hoverHandlers.attachSeasonChart();
+
+  document.getElementById('scanBtn').addEventListener('click', () => {
+    const cityName = document.getElementById('city').value.trim();
+    if (cityName) searchForCity(cityName);
+  });
+  document.getElementById('city').addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      document.getElementById('scanBtn').click();
+    }
+  });
+
+  window.addEventListener('resize', () => {
+    if (appState.currentWeatherData) {
+      screen.drawSeasonComparison(appState.currentWeatherData.history.seasons);
+    }
+  });
+
+  let scrollTimer;
+  window.addEventListener('scroll', () => {
+    if (!document.body.classList.contains('is-scrolling')) {
+      document.body.classList.add('is-scrolling');
+    }
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(() => document.body.classList.remove('is-scrolling'), 140);
+  }, { passive: true });
+
+  buildTriangleBackground();
+
+  document.getElementById('footstamp').textContent =
+    new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase();
+
+  runBootSequence();
+}
+
+document.addEventListener('DOMContentLoaded', initializeApp);
+</script>
 </body>
 </html>
