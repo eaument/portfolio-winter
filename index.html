@@ -311,7 +311,7 @@ footer { margin-top: 120px; border-top: 1px solid var(--line-heavy); padding: 40
   position: absolute; inset: 0 auto 0 0;
   width: 0;
   background: #0a0a0a; /* Dark fill */
-  transition: width 2.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: width 0.1s linear;
 }
 
 /* Details */
@@ -580,7 +580,6 @@ try { saved = localStorage.getItem('ws-last') || 'Bozeman'; } catch(e) {}
 initialData = fetchData(saved); 
 
 function startBoot() {
-  // Animate the progress bar from 0 to 100 over 3 seconds
   let progress = 0;
   const interval = setInterval(() => {
     progress += Math.random() * 5 + 2;
@@ -596,8 +595,14 @@ function startBoot() {
   }, 80);
 }
 
-function finishBoot() {
+function finishBoot(e) {
   if (bootDone) return;
+  
+  // FIX: Stop spacebar/arrows from scrolling the page before we hide the overlay
+  if (e) {
+    e.preventDefault();
+  }
+  
   bootDone = true;
   
   // 1. Hide the boot screen
@@ -632,6 +637,10 @@ function finishBoot() {
     $('#tickerText').innerHTML = '<span class="ticker-item alert">CONNECTION FAILED // RETRY QUERY</span>';
     document.body.classList.remove('is-loading');
   });
+  
+  // 7. Remove listeners to prevent future interference
+  document.removeEventListener('keydown', finishBoot);
+  document.removeEventListener('touchstart', finishBoot);
 }
 
 bootPress.addEventListener('click', finishBoot);
