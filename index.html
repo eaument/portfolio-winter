@@ -1,1008 +1,189 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>SNOWFALL // Telemetry</title>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-<style>
-:root {
-  --bg: #e4e7eb;
-  --ink: #0a0a0a;
-  --mute: #6a7580;
-  --line: rgba(10, 10, 10, 0.12);
-  --line-heavy: rgba(10, 10, 10, 0.3);
-  --cyan: #00a8ff;
-  --cyan-dim: rgba(0, 168, 255, 0.15);
-  --warn: #d12828; 
-  --yellow: #b86a00; 
-  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-}
-
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body {
-  font-family: 'Montserrat', Arial, sans-serif;
-  background: var(--bg);
-  color: var(--ink);
-  overflow-x: hidden;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-}
-
-main, footer { position: relative; z-index: 2; }
-.wrap { max-width: 1440px; margin: 0 auto; padding: 0 5vw; }
-
-/* Typography */
-.micro { font-family: var(--mono); font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--mute); font-weight: 500; }
-.h2 { font-weight: 200; text-transform: uppercase; line-height: 1; font-size: clamp(28px, 4vw, 48px); letter-spacing: 0.15em; }
-
-/* Panel Labels */
-.label {
-  display: flex; align-items: baseline;
-  font-family: var(--mono); font-size: 9px; letter-spacing: 0.25em;
-  color: var(--mute); text-transform: uppercase;
-  margin-bottom: 24px; border-bottom: 1px solid var(--line); padding-bottom: 12px;
-}
-
-/* Background */
-.bg-layer { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: var(--bg); overflow: hidden; contain: paint; }
-#tris-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-@keyframes layerCycle { 0%, 40% { opacity: 1; } 60%, 90% { opacity: 0; } 100% { opacity: 1; } }
-.tri { animation: layerCycle 15s linear infinite; }
-.sweep { position: absolute; inset: 0; background: linear-gradient(115deg, transparent 42%, rgba(255, 255, 255, 0.15) 50%, transparent 58%); animation: sweep 22s linear infinite; pointer-events: none; }
-@keyframes sweep { 0% { transform: translateX(-60%); } 100% { transform: translateX(60%); } }
-.vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 30%, rgba(180, 190, 200, 0.4) 100%); pointer-events: none; }
-.is-scrolling .tri, .is-scrolling .sweep { animation-play-state: paused; }
-
-/* Loading State */
-.data-container { transition: opacity 0.3s ease, filter 0.3s ease; }
-body.is-loading .data-container { opacity: 0.2; filter: blur(2px); pointer-events: none; }
-body.is-loading .search-input { border-bottom-color: var(--cyan); }
-body.is-loading .search-btn { background: var(--cyan); color: #fff; border-color: var(--cyan); cursor: wait; }
-
-/* Nav */
-.nav {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 50; display: flex; align-items: center; justify-content: space-between;
-  height: calc(72px + env(safe-area-inset-top, 0px));
-  padding: env(safe-area-inset-top, 0px) max(5vw, env(safe-area-inset-right, 0px)) 0 max(5vw, env(safe-area-inset-left, 0px));
-  background: linear-gradient(to bottom, var(--bg) 30%, transparent 100%); border-bottom: 1px solid var(--line);
-}
-.brand { font-weight: 600; letter-spacing: 0.4em; font-size: 13px; text-transform: uppercase; display: flex; align-items: center; gap: 12px; color: var(--ink); }
-.brand::before {
-  content: ""; display: inline-block; width: 0; height: 0;
-  border-left: 5px solid transparent; border-right: 5px solid transparent;
-  border-bottom: 9px solid var(--cyan); filter: drop-shadow(0 0 4px rgba(0, 168, 255, 0.4));
-}
-.nav-status { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink); }
-.nav-status .led { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 8px var(--cyan); animation: pulse 2s infinite; }
-@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-
-/* Search Input */
-.search-wrap { margin: 0 0 30px; display: flex; gap: 16px; align-items: flex-end; position: relative; z-index: 10; }
-.search-input {
-  flex: 1; background: transparent; border: none; border-bottom: 1px solid var(--line-heavy); padding: 12px 0;
-  font-family: var(--mono); font-size: 14px; color: var(--ink); letter-spacing: 0.1em; outline: none; transition: border-color 0.2s; text-transform: uppercase;
-}
-.search-input::placeholder { color: var(--mute); }
-.search-input:focus { border-bottom-color: var(--cyan); }
-.search-btn {
-  background: transparent; border: 1px solid var(--ink); color: var(--ink); padding: 12px 32px;
-  font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; transition: all 0.2s;
-}
-.search-btn:hover { background: var(--cyan); border-color: var(--cyan); color: #fff; }
-.search-btn:disabled { opacity: 0.5; cursor: wait; }
-
-/* DBH Panels */
-.hud-panel {
-  position: relative; padding: 40px; background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.5);
-  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 24px), calc(100% - 24px) 100%, 0 100%);
-  transition: all 0.3s cubic-bezier(0.2, 0.7, 0.2, 1); margin-bottom: 24px;
-}
-.hud-panel:hover { background: rgba(255, 255, 255, 0.35); border-color: var(--cyan); }
-.hud-panel::before { content: ""; position: absolute; top: 0; left: 0; width: 32px; height: 2px; background: var(--cyan); }
-.hud-panel::after { content: ""; position: absolute; bottom: 0; right: 0; width: 2px; height: 32px; background: var(--cyan); }
-
-section.sec { padding: 0 0 120px; }
-.sec-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap; margin: 0 0 40px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
-.sec-head .micro { display: block; margin-bottom: 10px; color: var(--cyan); }
-
-/* Hero */
-.hero { padding: calc(140px + env(safe-area-inset-top, 0px)) 0 60px; }
-.hero-top { display: flex; justify-content: space-between; gap: 24px; margin-bottom: 32px; flex-wrap: wrap; align-items: center; }
-.hero-loc { display: flex; flex-direction: column; gap: 8px; }
-.hero-loc .city { font-weight: 200; font-size: 24px; letter-spacing: 0.15em; text-transform: uppercase; transition: color 0.3s; }
-body.is-loading .hero-loc .city { color: var(--cyan); }
-.hero-loc .date { font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--mute); }
-
-/* DBH Ticker */
-.ticker-wrap {
-  overflow: hidden;
-  white-space: nowrap;
-  border-top: 1px solid var(--line-heavy);
-  border-bottom: 1px solid var(--line-heavy);
-  padding: 12px 0;
-  margin-bottom: 40px;
-  position: relative;
-  z-index: 10;
-  background: rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-}
-.ticker-content {
-  display: inline-block;
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  animation: ticker 30s linear infinite;
-}
-@keyframes ticker {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-.ticker-item { margin-right: 40px; color: var(--mute); }
-.ticker-item.alert { color: var(--warn); font-weight: 700; }
-.ticker-item.warn { color: var(--yellow); font-weight: 700; }
-.ticker-item.ok { color: var(--cyan); font-weight: 700; }
-
-.hero-main { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: stretch; }
-.hero-left { display: flex; flex-direction: column; gap: 24px; }
-.rate-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--cyan); display: flex; align-items: center; gap: 12px; }
-.rate-label::after { content: ""; flex: 1; height: 1px; background: var(--cyan); opacity: 0.3; }
-.rate { font-weight: 200; font-size: clamp(64px, 8vw, 120px); line-height: 0.8; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; display: flex; align-items: baseline; }
-.rate-unit { font-size: 0.25em; font-weight: 400; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mute); margin-left: 12px; line-height: 1.2; display: flex; flex-direction: column; }
-.rate-unit span:first-child { color: var(--ink); font-weight: 500; }
-
-/* Highlighting condition rows */
-.rows div { 
-  display: flex; justify-content: space-between; padding: 14px 0 14px 0; 
-  border-bottom: 1px solid var(--line); font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; 
-  transition: all 0.3s; position: relative;
-}
-.rows div:last-child { border-bottom: none; }
-.rows span:last-child { font-family: var(--mono); font-size: 14px; font-weight: 500; transition: color 0.3s; }
-
-.rows div.highlight-warn { padding-left: 12px; }
-.rows div.highlight-warn::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--warn); }
-.rows div.highlight-warn span:last-child { color: var(--warn); font-weight: 700; }
-
-.rows div.highlight-yellow { padding-left: 12px; }
-.rows div.highlight-yellow::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--yellow); }
-.rows div.highlight-yellow span:last-child { color: var(--yellow); font-weight: 700; }
-
-.prob { margin-bottom: 20px; }
-.prob .top { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.1em; }
-.prob .top span:last-child { color: var(--cyan); font-weight: 600; }
-.bar { height: 2px; background: var(--line-heavy); position: relative; overflow: hidden; }
-.bar i { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--cyan); transition: width 1.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
-
-/* Chart */
-.chart-panel { position: relative; overflow: visible; display: flex; flex-direction: column; justify-content: space-between; }
-.chart-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 32px; }
-.chart-head .title { font-family: var(--mono); font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--ink); font-weight: 600; }
-.chart-head .legend { display: flex; gap: 20px; font-family: var(--mono); font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mute); }
-.chart-head .legend span { display: inline-flex; align-items: center; gap: 8px; }
-.chart-head .legend span::before { content: ""; width: 8px; height: 8px; background: var(--cyan); }
-.chart-head .legend span.fc::before { background: var(--cyan-dim); border: 1px solid var(--cyan); }
-.chart { width: 100%; height: 240px; position: relative; flex: 1; }
-.chart svg { width: 100%; height: 100%; overflow: visible; }
-.chart-line { fill: none; stroke: var(--cyan); stroke-width: 2; vector-effect: non-scaling-stroke; }
-.chart-fill { fill: url(#chart-grad); stroke: none; }
-.chart-grid { stroke: var(--line); stroke-width: 1; vector-effect: non-scaling-stroke; }
-.chart-point { fill: var(--bg); stroke: var(--cyan); stroke-width: 2; }
-.chart-point.pulse { animation: pointPulse 2s infinite; }
-@keyframes pointPulse { 0% { r: 4; opacity: 1; } 50% { r: 8; opacity: 0.3; } 100% { r: 4; opacity: 1; } }
-.chart-labels { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mute); margin-top: 16px; }
-.chart-labels span:nth-child(2) { color: var(--cyan); }
-
-/* Empty State */
-.empty-chart { display: none; position: absolute; inset: 0; align-items: center; justify-content: center; font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; color: var(--mute); text-transform: uppercase; }
-
-/* Readout Stats */
-.readout { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line-heavy); margin-top: 60px; padding-top: 40px; }
-.rcell { padding-right: 24px; border-right: 1px solid var(--line); position: relative; }
-.rcell:last-child { border-right: 0; padding-right: 0; }
-.rcell::before { content: ""; position: absolute; top: -41px; left: 0; width: 1px; height: 8px; background: var(--line-heavy); }
-.rcell:first-child::before { display: none; }
-.rcell .k { font-family: var(--mono); font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--mute); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-.rcell .k::before { content: "//"; color: var(--cyan); font-size: 10px; font-weight: 600; }
-.rcell .v { font-weight: 200; font-size: clamp(32px, 3.5vw, 48px); line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
-.rcell .v small { font-size: 0.35em; color: var(--mute); font-weight: 400; margin-left: 6px; letter-spacing: 0.1em; }
-
-/* Hourly Timeline */
-.hourly-wrap { display: grid; grid-template-columns: repeat(12, 1fr); border-top: 1px solid var(--line-heavy); position: relative; overflow-x: auto; padding-bottom: 10px; }
-.hourly-wrap::before { content: ""; position: absolute; top: 40px; left: 0; right: 0; height: 1px; background: var(--line); min-width: 800px; }
-.hour { padding: 0 10px 30px; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; position: relative; border-right: 1px solid var(--line); z-index: 2; min-width: 80px; }
-.hour:last-child { border-right: 0; }
-.hour .t { font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mute); height: 20px; }
-.hour .node { width: 9px; height: 9px; background: var(--bg); border: 2px solid var(--mute); border-radius: 50%; margin-top: 11px; position: relative; z-index: 3; transition: all 0.3s; }
-.hour .i { color: var(--mute); height: 32px; display: flex; align-items: center; margin-top: 10px; }
-.hour .amt { font-weight: 300; font-size: 22px; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
-.hour .amt small { font-size: 0.6em; color: var(--mute); font-weight: 300; margin-left: 3px; }
-.hour .intensity { font-family: var(--mono); font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--mute); margin-top: 4px; }
-.hour .intensity.hv { color: var(--warn); font-weight: 700; }
-.hour.now .t { color: var(--cyan); font-weight: 600; }
-.hour.now .node { border-color: var(--cyan); background: var(--cyan); box-shadow: 0 0 12px var(--cyan); }
-.hour.now .i, .hour.now .amt, .hour.now .intensity { color: var(--cyan); }
-
-/* Regional Table */
-.regional-table { width: 100%; border-collapse: collapse; }
-.regional-table th { text-align: left; font-family: var(--mono); font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--mute); font-weight: 500; padding: 0 0 16px; border-bottom: 1px solid var(--line-heavy); }
-.regional-table th.num { text-align: right; }
-.regional-table td { padding: 24px 0; border-bottom: 1px solid var(--line); font-size: 14px; vertical-align: middle; transition: all 0.2s; }
-.regional-table tr:hover td { background: var(--cyan-dim); border-bottom-color: var(--cyan); }
-.regional-table .loc { font-weight: 400; padding-left: 20px; position: relative; letter-spacing: 0.1em; text-transform: uppercase; }
-.regional-table .loc::before { content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 6px; height: 6px; border: 1px solid var(--mute); border-radius: 50%; }
-.regional-table tr:hover .loc::before { background: var(--cyan); border-color: var(--cyan); }
-.regional-table .loc .sub { display: block; font-family: var(--mono); font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mute); margin-top: 6px; }
-.regional-table .bar-cell { width: 40%; padding: 0 32px; }
-.regional-table .rate-val { text-align: right; font-family: var(--mono); font-size: 16px; font-variant-numeric: tabular-nums; font-weight: 600; width: 120px; }
-.regional-table .rate-val .u { color: var(--mute); font-weight: 300; margin-left: 4px; font-size: 12px; }
-.regional-table .total { text-align: right; font-family: var(--mono); font-size: 14px; color: var(--mute); font-variant-numeric: tabular-nums; width: 120px; }
-
-/* Canvas Chart */
-canvas#hist { width: 100%; height: 220px; display: block; }
-
-/* Footer */
-footer { margin-top: 120px; border-top: 1px solid var(--line-heavy); padding: 40px 0 calc(40px + env(safe-area-inset-bottom, 0px)); font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--mute); }
-.foot { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
-
-/* ---------- WHITE DBH BOOT SCREEN ---------- */
-#boot {
-  position: fixed; inset: 0; z-index: 200;
-  background: #ffffff; /* Pure white */
-  display: flex; align-items: center; justify-content: center; flex-direction: column;
-  transition: opacity 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-#boot.hidden { opacity: 0; pointer-events: none; }
-
-.boot-content {
-  position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; text-align: center;
-  max-width: 500px;
-  width: 100%;
-  padding: 0 20px;
-}
-
-/* Segmented Spinner */
-.boot-spinner {
-  width: 60px;
-  height: 60px;
-  margin-bottom: 40px;
-  animation: spin 1.5s linear infinite;
-}
-@keyframes spin {
-  100% { transform: rotate(360deg); }
-}
-.boot-spinner svg {
-  width: 100%; height: 100%;
-}
-
-/* Title */
-.boot-title {
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 600;
-  font-size: 24px;
-  color: #0a0a0a;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  margin-bottom: 12px;
-}
-
-.boot-subtitle {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.2em;
-  color: #6a7580;
-  text-transform: uppercase;
-  margin-bottom: 40px;
-}
-
-/* Progress Bar */
-.boot-bar-wrap {
-  width: 100%;
-  height: 2px;
-  background: rgba(0, 0, 0, 0.05);
-  position: relative;
-  overflow: hidden;
-  margin-bottom: 16px;
-}
-.boot-bar {
-  position: absolute; inset: 0 auto 0 0;
-  width: 0;
-  background: #0a0a0a; /* Dark fill */
-  transition: width 0.1s linear;
-}
-
-/* Details */
-.boot-details {
-  display: flex; justify-content: space-between; width: 100%;
-  font-family: var(--mono);
-  font-size: 10px;
-  color: #8a96a3;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-/* Press Any Key */
-.boot-press {
-  margin-top: 50px;
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  color: #0a0a0a;
-  animation: pressPulse 2s infinite;
-  cursor: pointer;
-  display: none;
-  opacity: 0;
-}
-@keyframes pressPulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
-
-/* UI Reveal Animations */
-.reveal {
-  opacity: 0;
-  transform: translateY(12px);
-  transition: opacity 0.8s cubic-bezier(0.2, 0.7, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-body.loaded .reveal {
-  opacity: 1;
-  transform: translateY(0);
-}
-.delay-1 { transition-delay: 0.1s; }
-.delay-2 { transition-delay: 0.2s; }
-.delay-3 { transition-delay: 0.3s; }
-.delay-4 { transition-delay: 0.4s; }
-.delay-5 { transition-delay: 0.5s; }
-
-/* Responsive */
-@media (max-width: 1024px) {
-  .hero-main { grid-template-columns: 1fr; gap: 40px; }
-  .readout { grid-template-columns: repeat(2, 1fr); gap: 32px; }
-  .rcell { border-right: 0; padding-right: 0; }
-  .g2 { grid-template-columns: 1fr !important; }
-}
-
-@media (max-width: 600px) {
-  .wrap { padding: 0 4vw; }
-  .search-wrap { flex-direction: column; align-items: stretch; }
-  .hero-loc .city { font-size: 18px; }
-  .readout { grid-template-columns: 1fr; gap: 24px; }
-  .regional-table .bar-cell { display: none; }
-  .hud-panel { padding: 24px 20px; }
-  .rate { font-size: clamp(48px, 14vw, 80px); }
-  .rate-unit { margin-left: 8px; font-size: 0.35em; }
-}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>SNOWFALL // Telemetry</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- WHITE DBH BOOT SCREEN -->
-<div id="boot">
-  <div class="boot-content">
-    <!-- Segmented Spinner -->
-    <div class="boot-spinner">
-      <svg viewBox="0 0 100 100" fill="none">
-        <!-- Outer track (faint) -->
-        <circle cx="50" cy="50" r="40" stroke="#e4e7eb" stroke-width="4" />
-        <!-- Segments (blue) -->
-        <path d="M50 10 A40 40 0 0 1 90 50" stroke="#00a8ff" stroke-width="4" stroke-linecap="round" />
-        <path d="M50 90 A40 40 0 0 1 10 50" stroke="#00a8ff" stroke-width="4" stroke-linecap="round" />
-      </svg>
-    </div>
+  <!-- WHITE DBH BOOT SCREEN -->
+  <div id="boot">
+    <div class="boot-content">
+      <!-- Segmented Spinner -->
+      <div class="boot-spinner">
+        <svg viewBox="0 0 100 100" fill="none">
+          <!-- Outer track (faint) -->
+          <circle cx="50" cy="50" r="40" stroke="#e4e7eb" stroke-width="4" />
+          <!-- Segments (blue) -->
+          <path d="M50 10 A40 40 0 0 1 90 50" stroke="#00a8ff" stroke-width="4" stroke-linecap="round" />
+          <path d="M50 90 A40 40 0 0 1 10 50" stroke="#00a8ff" stroke-width="4" stroke-linecap="round" />
+        </svg>
+      </div>
 
-    <div class="boot-title">SNOWFALL</div>
-    <div class="boot-subtitle">TELEMETRY SYSTEM</div>
+      <div class="boot-title">SNOWFALL</div>
+      <div class="boot-subtitle">TELEMETRY SYSTEM</div>
 
-    <div class="boot-bar-wrap"><div class="boot-bar" id="bootBar"></div></div>
-    
-    <div class="boot-details">
-      <span>INITIALIZING</span>
-      <span id="bootPct">0%</span>
-    </div>
-
-    <div class="boot-press" id="bootPress">PRESS ANY KEY TO CONTINUE</div>
-  </div>
-</div>
-
-<div class="bg-layer" aria-hidden="true">
-  <svg id="tris-svg" xmlns="http://www.w3.org/2000/svg"></svg>
-  <div class="sweep"></div>
-  <div class="vignette"></div>
-</div>
-
-<nav class="nav reveal">
-  <div class="brand">SNOWFALL</div>
-  <div class="nav-status"><div class="led"></div> SYSTEM ONLINE</div>
-</nav>
-
-<main id="top">
-
-  <section class="hero">
-    <div class="wrap">
+      <div class="boot-bar-wrap"><div class="boot-bar" id="bootBar"></div></div>
       
-      <div class="search-wrap reveal delay-1">
-        <input type="text" class="search-input" id="city" placeholder="ENTER LOCATION FOR ANALYSIS (E.G. DENVER)..." autocomplete="off">
-        <button class="search-btn" id="scanBtn">SCAN</button>
+      <div class="boot-details">
+        <span>INITIALIZING</span>
+        <span id="bootPct">0%</span>
       </div>
 
-      <div class="ticker-wrap reveal delay-2">
-        <div class="ticker-content" id="tickerText">SYS.READY // AWAITING TELEMETRY STREAM</div>
-      </div>
-
-      <div class="data-container">
-        
-        <div class="hero-top reveal delay-3">
-          <div class="hero-loc">
-            <span class="micro">Telemetry Station</span>
-            <span class="city" id="locName">—</span>
-            <span class="date" id="date">—</span>
-          </div>
-        </div>
-
-        <div class="hero-main">
-          
-          <div class="hero-left reveal delay-4">
-            <div>
-              <div class="rate-label">Snow depth</div>
-              <div class="rate">
-                <span id="depth">0.0</span>
-                <span class="rate-unit">
-                  <span>IN</span>
-                  <span>DEPTH</span>
-                </span>
-              </div>
-            </div>
-
-            <div class="rows" style="margin-top:20px;" id="conditionRows">
-              <div id="row-rate"><span>Snowfall rate</span><span id="rate">—</span></div>
-              <div id="row-temp"><span>Temperature</span><span id="temp">—</span></div>
-              <div id="row-chill"><span>Wind chill</span><span id="chill">—</span></div>
-              <div id="row-wind"><span>Wind</span><span id="wind">—</span></div>
-            </div>
-
-            <div class="probs" style="margin-top:20px;">
-              <div class="label" style="border:none; margin-bottom:12px; padding:0; color:var(--cyan);"><span>Accumulation probability</span></div>
-              <div id="probs"></div>
-            </div>
-          </div>
-
-          <div class="chart-panel hud-panel reveal delay-5">
-            <div class="chart-head">
-              <span class="title">24H ACCUMULATION</span>
-              <div class="legend">
-                <span>Past</span>
-                <span class="fc">Forecast</span>
-              </div>
-            </div>
-            
-            <div class="chart">
-              <svg id="dyn-chart" viewBox="0 0 100 100" preserveAspectRatio="none">
-                <defs>
-                  <linearGradient id="chart-grad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#00a8ff" stop-opacity="0.3"/>
-                    <stop offset="100%" stop-color="#00a8ff" stop-opacity="0"/>
-                  </linearGradient>
-                </defs>
-                <line class="chart-grid" x1="0" y1="25" x2="100" y2="25" />
-                <line class="chart-grid" x1="0" y1="50" x2="100" y2="50" />
-                <line class="chart-grid" x1="0" y1="75" x2="100" y2="75" />
-                <path id="chart-fill-path" class="chart-fill" d="" />
-                <path id="chart-line-path" class="chart-line" d="" />
-                <circle id="chart-point" class="chart-point pulse" cx="50" cy="50" r="4" style="display:none;" />
-              </svg>
-              <div class="empty-chart" id="empty-chart">NO ACCUMULATION DETECTED</div>
-            </div>
-
-            <div class="chart-labels">
-              <span>-12H</span>
-              <span>NOW</span>
-              <span>+6H</span>
-            </div>
-          </div>
-
-        </div>
-
-        <div class="readout reveal delay-5">
-          <div class="rcell"><div class="k">Past 24H</div><div class="v"><span id="t24">0.0</span><small>IN</small></div></div>
-          <div class="rcell"><div class="k">Past 48H</div><div class="v"><span id="t48">0.0</span><small>IN</small></div></div>
-          <div class="rcell"><div class="k">Next 72H</div><div class="v"><span id="n72">0.0</span><small>IN</small></div></div>
-          <div class="rcell"><div class="k">Season to date</div><div class="v"><span id="season">0.0</span><small>IN</small></div></div>
-        </div>
-
-      </div>
+      <div class="boot-press" id="bootPress">PRESS ANY KEY TO CONTINUE</div>
     </div>
-  </section>
+  </div>
 
-  <div class="data-container">
-    <section class="sec reveal delay-5">
+  <div class="bg-layer" aria-hidden="true">
+    <svg id="tris-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div class="sweep"></div>
+    <div class="vignette"></div>
+  </div>
+
+  <nav class="nav reveal">
+    <div class="brand">SNOWFALL</div>
+    <div class="nav-status"><div class="led"></div> SYSTEM ONLINE</div>
+  </nav>
+
+  <main id="top">
+
+    <section class="hero">
       <div class="wrap">
-        <div class="sec-head">
-          <div><span class="micro">01 / Timeline</span><h2 class="h2">Forecast</h2></div>
-          <span class="micro">NEXT 12 HOURS</span>
+        
+        <div class="search-wrap reveal delay-1">
+          <input type="text" class="search-input" id="city" placeholder="ENTER LOCATION FOR ANALYSIS (E.G. DENVER)..." autocomplete="off">
+          <button class="search-btn" id="scanBtn">SCAN</button>
         </div>
-        <div class="hourly-wrap" id="hourly"></div>
+
+        <div class="ticker-wrap reveal delay-2">
+          <div class="ticker-content" id="tickerText">SYS.READY // AWAITING TELEMETRY STREAM</div>
+        </div>
+
+        <div class="data-container">
+          
+          <div class="hero-top reveal delay-3">
+            <div class="hero-loc">
+              <span class="micro">Telemetry Station</span>
+              <span class="city" id="locName">—</span>
+              <span class="date" id="date">—</span>
+            </div>
+          </div>
+
+          <div class="hero-main">
+            
+            <div class="hero-left reveal delay-4">
+              <div>
+                <div class="rate-label">Snow depth</div>
+                <div class="rate">
+                  <span id="depth">0.0</span>
+                  <span class="rate-unit">
+                    <span>IN</span>
+                    <span>DEPTH</span>
+                  </span>
+                </div>
+              </div>
+
+              <div class="rows" style="margin-top:20px;" id="conditionRows">
+                <div id="row-rate"><span>Snowfall rate</span><span id="rate">—</span></div>
+                <div id="row-temp"><span>Temperature</span><span id="temp">—</span></div>
+                <div id="row-chill"><span>Wind chill</span><span id="chill">—</span></div>
+                <div id="row-wind"><span>Wind</span><span id="wind">—</span></div>
+              </div>
+
+              <div class="probs" style="margin-top:20px;">
+                <div class="label" style="border:none; margin-bottom:12px; padding:0; color:var(--cyan);"><span>Accumulation probability</span></div>
+                <div id="probs"></div>
+              </div>
+            </div>
+
+            <div class="chart-panel hud-panel reveal delay-5">
+              <div class="chart-head">
+                <span class="title">24H ACCUMULATION</span>
+                <div class="legend">
+                  <span>Past</span>
+                  <span class="fc">Forecast</span>
+                </div>
+              </div>
+              
+              <div class="chart">
+                <svg id="dyn-chart" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="chart-grad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#00a8ff" stop-opacity="0.3"/>
+                      <stop offset="100%" stop-color="#00a8ff" stop-opacity="0"/>
+                    </linearGradient>
+                  </defs>
+                  <line class="chart-grid" x1="0" y1="25" x2="100" y2="25" />
+                  <line class="chart-grid" x1="0" y1="50" x2="100" y2="50" />
+                  <line class="chart-grid" x1="0" y1="75" x2="100" y2="75" />
+                  <path id="chart-fill-path" class="chart-fill" d="" />
+                  <path id="chart-line-path" class="chart-line" d="" />
+                  <circle id="chart-point" class="chart-point pulse" cx="50" cy="50" r="4" style="display:none;" />
+                </svg>
+                <div class="empty-chart" id="empty-chart">NO ACCUMULATION DETECTED</div>
+              </div>
+
+              <div class="chart-labels">
+                <span>-12H</span>
+                <span>NOW</span>
+                <span>+6H</span>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="readout reveal delay-5">
+            <div class="rcell"><div class="k">Past 24H</div><div class="v"><span id="t24">0.0</span><small>IN</small></div></div>
+            <div class="rcell"><div class="k">Past 48H</div><div class="v"><span id="t48">0.0</span><small>IN</small></div></div>
+            <div class="rcell"><div class="k">Next 72H</div><div class="v"><span id="n72">0.0</span><small>IN</small></div></div>
+            <div class="rcell"><div class="k">Season to date</div><div class="v"><span id="season">0.0</span><small>IN</small></div></div>
+          </div>
+
+        </div>
       </div>
     </section>
 
-    <div class="wrap grid g2 reveal delay-5" style="display:grid; grid-template-columns: 1.4fr 1fr; gap:24px; margin-bottom:120px;">
-      <section class="hud-panel" style="margin-bottom:0;">
-        <div class="label"><span>Historical analysis // season to date</span></div>
-        <canvas id="hist"></canvas>
-        <div class="micro" id="histNote" style="margin-top:16px;">—</div>
+    <div class="data-container">
+      <section class="sec reveal delay-5">
+        <div class="wrap">
+          <div class="sec-head">
+            <div><span class="micro">01 / Timeline</span><h2 class="h2">Forecast</h2></div>
+            <span class="micro">NEXT 12 HOURS</span>
+          </div>
+          <div class="hourly-wrap" id="hourly"></div>
+        </div>
       </section>
-      <section class="hud-panel" style="margin-bottom:0;">
-        <div class="label"><span>Surrounding area // 25 mi</span></div>
-        <table class="regional-table">
-          <thead>
-            <tr><th>Location</th><th class="bar-cell"></th><th class="num">Rate</th><th class="num">24H</th></tr>
-          </thead>
-          <tbody id="area"></tbody>
-        </table>
-      </section>
+
+      <div class="wrap grid g2 reveal delay-5" style="display:grid; grid-template-columns: 1.4fr 1fr; gap:24px; margin-bottom:120px;">
+        <section class="hud-panel" style="margin-bottom:0;">
+          <div class="label"><span>Historical analysis // season to date</span></div>
+          <canvas id="hist"></canvas>
+          <div class="micro" id="histNote" style="margin-top:16px;">—</div>
+        </section>
+        <section class="hud-panel" style="margin-bottom:0;">
+          <div class="label"><span>Surrounding area // 25 mi</span></div>
+          <table class="regional-table">
+            <thead>
+              <tr><th>Location</th><th class="bar-cell"></th><th class="num">Rate</th><th class="num">24H</th></tr>
+            </thead>
+            <tbody id="area"></tbody>
+          </table>
+        </section>
+      </div>
     </div>
-  </div>
 
-</main>
+  </main>
 
-<footer class="reveal delay-5">
-  <div class="wrap foot">
-    <span>SNOWFALL // SYS.V4</span>
-    <span id="footstamp">—</span>
-  </div>
-</footer>
+  <footer class="reveal delay-5">
+    <div class="wrap foot">
+      <span>SNOWFALL // SYS.V4</span>
+      <span id="footstamp">—</span>
+    </div>
+  </footer>
 
-<script>
-if ('scrollRestoration' in history) {
-  history.scrollRestoration = 'manual';
-}
-
-const $ = s => document.querySelector(s);
-const sleep = ms => new Promise(r => setTimeout(r, ms));
-const cmToIn = v => (v || 0) / 2.54;
-const sum = (arr, a, b) => arr.slice(Math.max(0, a), b + 1).reduce((s, v) => s + (v || 0), 0);
-const iso = d => d.toISOString().slice(0, 10);
-
-let currentSeasons = [];
-let initialData = null; 
-
-let bootDone = false;
-const bootBar = $('#bootBar');
-const bootPct = $('#bootPct');
-const bootPress = $('#bootPress');
-
-// Lock body scroll physically
-document.body.style.overflow = 'hidden';
-document.documentElement.style.overflow = 'hidden';
-
-let saved = 'Bozeman';
-try { saved = localStorage.getItem('ws-last') || 'Bozeman'; } catch(e) {}
-initialData = fetchData(saved); 
-
-function startBoot() {
-  let progress = 0;
-  const interval = setInterval(() => {
-    progress += Math.random() * 5 + 2;
-    if (progress > 100) progress = 100;
-    bootBar.style.width = progress + '%';
-    bootPct.textContent = Math.round(progress) + '%';
-    
-    if (progress >= 100) {
-      clearInterval(interval);
-      bootPress.style.display = 'block';
-      bootPress.style.opacity = '1';
-    }
-  }, 80);
-}
-
-function finishBoot(e) {
-  if (bootDone) return;
-  
-  // FIX: Stop spacebar/arrows from scrolling the page before we hide the overlay
-  if (e) {
-    e.preventDefault();
-  }
-  
-  bootDone = true;
-  
-  // 1. Hide the boot screen
-  $('#boot').classList.add('hidden');
-  
-  // 2. Enable scrolling completely
-  document.body.style.overflow = '';
-  document.documentElement.style.overflow = '';
-  document.body.classList.add('loaded');
-  
-  // 3. Hard scroll to top AFTER unlocking overflow
-  window.scrollTo(0, 0);
-  setTimeout(() => window.scrollTo(0, 0), 10);
-  setTimeout(() => window.scrollTo(0, 0), 100);
-
-  // 4. Fade out the boot screen from DOM
-  setTimeout(() => { 
-    $('#boot').style.display = 'none'; 
-  }, 600);
-
-  // 5. Handle data loading state
-  document.body.classList.add('is-loading');
-  $('#locName').textContent = 'FETCHING TELEMETRY...';
-
-  // 6. Resolve and render
-  initialData.then(data => {
-    render(data.loc, data.f, data.hist, data.area);
-    document.body.classList.remove('is-loading');
-  }).catch(e => {
-    console.error("Initial fetch failed", e);
-    $('#locName').textContent = 'CONNECTION FAILED';
-    $('#tickerText').innerHTML = '<span class="ticker-item alert">CONNECTION FAILED // RETRY QUERY</span>';
-    document.body.classList.remove('is-loading');
-  });
-  
-  // 7. Remove listeners to prevent future interference
-  document.removeEventListener('keydown', finishBoot);
-  document.removeEventListener('touchstart', finishBoot);
-}
-
-bootPress.addEventListener('click', finishBoot);
-document.addEventListener('keydown', finishBoot);
-document.addEventListener('touchstart', finishBoot);
-
-setTimeout(startBoot, 500);
-
-async function geocode(name) {
-  const r = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=1&language=en&format=json`);
-  if (!r.ok) throw new Error('GEOCODE FAILED');
-  const d = await r.json();
-  if (!d.results?.length) throw new Error('LOCATION NOT FOUND');
-  const g = d.results[0];
-  return { name: g.name, region: [g.admin1, g.country_code].filter(Boolean).join(', '), lat: g.latitude, lon: g.longitude };
-}
-
-async function getForecast(lat, lon) {
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
-    `&current=temperature_2m,apparent_temperature,wind_speed_10m` +
-    `&hourly=snowfall,snow_depth&daily=precipitation_probability_max` +
-    `&past_days=2&forecast_days=7&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto`;
-  const r = await fetch(url);
-  if (!r.ok) throw new Error('FORECAST FAILED');
-  return r.json();
-}
-
-async function getHistory(lat, lon) {
-  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 7);
-  const seasonStart = cutoff.getMonth() >= 6 ? cutoff.getFullYear() : cutoff.getFullYear() - 1;
-  const earliest = `${seasonStart - 5}-10-01`;
-  const r = await fetch(`https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}` +
-    `&start_date=${earliest}&end_date=${iso(cutoff)}&daily=snowfall_sum&timezone=auto`);
-  if (!r.ok) throw new Error('ARCHIVE FAILED');
-  const d = await r.json();
-  const seasons = [];
-  for (let y = 5; y >= 0; y--) {
-    const sy = seasonStart - y;
-    const start = `${sy}-10-01`;
-    const end = iso(new Date(cutoff.getFullYear() - y, cutoff.getMonth(), cutoff.getDate()));
-    let total = 0;
-    d.daily.time.forEach((t, i) => { if (t >= start && t <= end) total += d.daily.snowfall_sum[i] || 0; });
-    seasons.push({ label: `${sy}–${String(sy + 1).slice(2)}`, value: cmToIn(total), current: y === 0 });
-  }
-  return { seasons, cutoff };
-}
-
-async function getArea(lat, lon) {
-  const dLat = 0.36, dLon = 0.36 / Math.cos(lat * Math.PI / 180);
-  const pts = [['NORTH', lat + dLat, lon], ['EAST', lat, lon + dLon], ['SOUTH', lat - dLat, lon], ['WEST', lat, lon - dLon]];
-  const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${pts.map(p => p[1].toFixed(3))}` +
-    `&longitude=${pts.map(p => p[2].toFixed(3))}&current=temperature_2m&hourly=snowfall&past_days=1&forecast_days=1&timezone=auto`);
-  if (!r.ok) throw new Error('AREA FAILED');
-  const d = await r.json();
-  const list = Array.isArray(d) ? d : [d];
-  return list.map((loc, i) => {
-    const idx = hourIndex(loc);
-    return { name: pts[i][0], rate: cmToIn(loc.hourly.snowfall[idx]), day: cmToIn(sum(loc.hourly.snowfall, idx - 23, idx)) };
-  });
-}
-
-async function fetchData(query) {
-  const loc = await geocode(query);
-  const fP = getForecast(loc.lat, loc.lon);
-  const hP = getHistory(loc.lat, loc.lon);
-  const aP = getArea(loc.lat, loc.lon);
-  const f = await fP;
-  const [hist, area] = await Promise.all([hP, aP]);
-  return { loc, f, hist, area };
-}
-
-function hourIndex(d) {
-  if (!d.current || !d.hourly) return 24;
-  const key = d.current.time.slice(0, 13) + ':00';
-  const i = d.hourly.time.indexOf(key);
-  return i >= 0 ? i : 24 * 2 + new Date().getHours();
-}
-
-function riskLevel({ temp, chill, wind, rate, depth }) {
-  let s = 0;
-  let factors = {
-    temp: false, chill: false, rate: false, heavy: false, wind: false, depth: false
-  };
-
-  if (temp <= 32) { s++; factors.temp = true; }
-  if (chill <= 15) { s++; factors.chill = true; }
-  if (rate > 0) { s++; factors.rate = true; }
-  if (rate > 0.3) { s += 2; factors.heavy = true; }
-  if (wind > 15) { s++; factors.wind = true; }
-  if (depth > 1) { s++; factors.depth = true; }
-
-  let level = 'LOW', color = 'blue';
-  if (s >= 5) { level = 'SEVERE'; color = 'warn'; }
-  else if (s >= 3) { level = 'MODERATE'; color = 'yellow'; }
-
-  return { level, color, factors, score: s };
-}
-
-function probability(total, threshold, precipMax) {
-  const p = (precipMax || 0) / 100;
-  const ratio = Math.min(total / threshold, 1);
-  return Math.round(100 * (total >= threshold ? Math.max(p, 0.6) : p * ratio * ratio));
-}
-
-function countUp(el, to, dec = 1) {
-  const start = performance.now(), dur = 900;
-  const step = now => {
-    const t = Math.min((now - start) / dur, 1), e = 1 - Math.pow(1 - t, 3);
-    el.textContent = (to * e).toFixed(dec);
-    if (t < 1) requestAnimationFrame(step);
-  };
-  requestAnimationFrame(step);
-}
-
-function renderChart(hourly, idx) {
-  const vals = [];
-  for (let i = idx - 12; i <= idx + 12; i++) vals.push(cmToIn(hourly.snowfall[i]));
-  
-  const max = Math.max(...vals, 1.0); 
-  
-  if (max <= 0.2 && Math.max(...vals) <= 0.2) {
-    $('#empty-chart').style.display = 'flex';
-    $('#chart-line-path').setAttribute('d', '');
-    $('#chart-fill-path').setAttribute('d', '');
-    $('#chart-point').style.display = 'none';
-    return;
-  } else {
-    $('#empty-chart').style.display = 'none';
-  }
-
-  const points = vals.map((v, n) => {
-    const x = (n / 24) * 100;
-    const y = 100 - (v / max) * 80 - 10;
-    return {x, y};
-  });
-
-  const pathStr = points.map((p, i) => (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ');
-  const fillStr = pathStr + ` L100,100 L0,100 Z`;
-
-  $('#chart-line-path').setAttribute('d', pathStr);
-  $('#chart-fill-path').setAttribute('d', fillStr);
-
-  const pt = points[12];
-  const circle = $('#chart-point');
-  circle.setAttribute('cx', pt.x);
-  circle.setAttribute('cy', pt.y);
-  circle.style.display = 'block';
-}
-
-function renderTimeline(hourly, idx) {
-  const box = $('#hourly'); box.innerHTML = '';
-  const vals = [];
-  for (let i = idx; i <= idx + 11; i++) vals.push(cmToIn(hourly.snowfall[i]));
-  
-  vals.forEach((v, n) => {
-    const off = n;
-    
-    let iconSvg = '';
-    if (v > 0.3) iconSvg = '<svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="1.4" fill="none"><line x1="12" y1="2" x2="12" y2="22"/><line x1="3.5" y1="7" x2="20.5" y2="17"/><line x1="3.5" y1="17" x2="20.5" y2="7"/></svg>';
-    else if (v > 0) iconSvg = '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M18 9h-1.26A8 8 0 1 0 9 19h9a5 5 0 0 0 0-10z" opacity="0.7"/><circle cx="8" cy="21" r="0.9"/><circle cx="12" cy="22" r="0.9"/><circle cx="16" cy="21" r="0.9"/></svg>';
-    else iconSvg = '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>';
-
-    const tLab = off === 0 ? 'NOW' : '+' + off + 'H';
-    const intensityClass = v > 0.3 ? 'hv' : v > 0 ? 'md' : 'lt';
-    const intensityText = v > 0.3 ? 'HEAVY' : v > 0 ? 'MOD' : 'LIGHT';
-
-    const col = document.createElement('div');
-    col.className = 'hour' + (off === 0 ? ' now' : '');
-    col.innerHTML = `
-      <div class="t">${tLab}</div>
-      <div class="node"></div>
-      <div class="i">${iconSvg}</div>
-      <div class="amt">${v.toFixed(1)}<small>″</small></div>
-      <div class="intensity ${intensityClass}">${intensityText}</div>
-    `;
-    box.appendChild(col);
-  });
-}
-
-function renderProbs(total, precipMax) {
-  $('#probs').innerHTML = [1, 3, 6].map(t => {
-    const p = probability(total, t, precipMax);
-    return `<div class="prob"><div class="top"><span>${t}+ IN</span><span>${p}%</span></div><div class="bar"><i data-w="${p}"></i></div></div>`;
-  }).join('');
-  setTimeout(() => document.querySelectorAll('.bar i').forEach(b => b.style.width = b.dataset.w + '%'), 100);
-}
-
-function renderHistory(seasons) {
-  currentSeasons = seasons;
-  const c = $('#hist'), dpr = window.devicePixelRatio || 1;
-  const w = c.clientWidth, h = c.clientHeight;
-  if (w === 0) return;
-  c.width = w * dpr; c.height = h * dpr;
-  const ctx = c.getContext('2d'); ctx.scale(dpr, dpr); ctx.clearRect(0, 0, w, h);
-  const max = Math.max(...seasons.map(s => s.value), 1) * 1.15;
-  const pad = 32, bw = (w - pad * 2) / seasons.length;
-  const past = seasons.filter(s => !s.current);
-  const avg = past.reduce((a, s) => a + s.value, 0) / past.length;
-
-  ctx.font = '10px ui-monospace'; ctx.textAlign = 'center';
-  seasons.forEach((s, i) => {
-    const bh = (s.value / max) * (h - 60);
-    const x = pad + i * bw + bw * 0.15, y = h - 30 - bh;
-    ctx.fillStyle = s.current ? '#00a8ff' : '#b0bcc6';
-    ctx.fillRect(x, y, bw * 0.7, bh);
-    ctx.fillStyle = s.current ? '#00a8ff' : '#6a7580';
-    ctx.fillText(s.value.toFixed(1), x + bw * 0.35, y - 8);
-    ctx.fillText(s.label, x + bw * 0.35, h - 10);
-  });
-  const ay = h - 30 - (avg / max) * (h - 60);
-  ctx.strokeStyle = '#d12828'; ctx.setLineDash([4, 4]); ctx.beginPath();
-  ctx.moveTo(pad, ay); ctx.lineTo(w - pad, ay); ctx.stroke(); ctx.setLineDash([]);
-  ctx.fillStyle = '#d12828'; ctx.textAlign = 'left'; ctx.fillText(`AVG ${avg.toFixed(1)}`, pad, ay - 6);
-
-  const cur = seasons[seasons.length - 1].value;
-  const diff = avg ? Math.round(((cur - avg) / avg) * 100) : 0;
-  $('#histNote').textContent = `CURRENT SEASON ${diff >= 0 ? '+' : ''}${diff}% VS 5-SEASON AVERAGE`;
-}
-
-async function manualScan(query) {
-  const btn = $('#scanBtn');
-  const input = $('#city');
-  
-  document.body.classList.add('is-loading');
-  btn.disabled = true;
-  btn.textContent = 'FETCHING...';
-  input.disabled = true;
-  $('#locName').textContent = 'FETCHING TELEMETRY...';
-
-  try {
-    const data = await fetchData(query);
-    render(data.loc, data.f, data.hist, data.area);
-    input.value = '';
-  } catch (e) {
-    $('#locName').textContent = 'CONNECTION FAILED';
-    $('#tickerText').innerHTML = '<span class="ticker-item alert">CONNECTION FAILED // RETRY QUERY</span>';
-  }
-  
-  document.body.classList.remove('is-loading');
-  btn.disabled = false;
-  btn.textContent = 'SCAN';
-  input.disabled = false;
-}
-
-function render(loc, f, hist, area) {
-  const idx = hourIndex(f), H = f.hourly;
-  const depth = (H.snow_depth[idx] || 0) * 39.37;
-  const rate = cmToIn(H.snowfall[idx]);
-  const t24 = cmToIn(sum(H.snowfall, idx - 23, idx));
-  const t48 = cmToIn(sum(H.snowfall, idx - 47, idx));
-  const n72 = cmToIn(sum(H.snowfall, idx + 1, idx + 72));
-  const c = f.current;
-  const precipMax = Math.max(...f.daily.precipitation_probability_max.slice(2, 5).map(v => v || 0));
-
-  $('#locName').textContent = `${loc.name.toUpperCase()}, ${loc.region.toUpperCase()}`;
-  countUp($('#depth'), depth);
-  countUp($('#t24'), t24); countUp($('#t48'), t48); countUp($('#n72'), n72);
-  countUp($('#season'), hist.seasons[hist.seasons.length - 1].value);
-  
-  $('#rate').textContent = `${rate.toFixed(2)} IN/HR`;
-  $('#temp').textContent = `${Math.round(c.temperature_2m)}°F`;
-  $('#chill').textContent = `${Math.round(c.apparent_temperature)}°F`;
-  $('#wind').textContent = `${Math.round(c.wind_speed_10m)} MPH`;
-
-  renderProbs(n72, precipMax);
-  renderTimeline(H, idx);
-  renderChart(H, idx);
-  renderHistory(hist.seasons);
-  
-  $('#area').innerHTML = area.map(a => `
-    <tr>
-      <td class="loc">${a.name}<span class="sub">SECTOR</span></td>
-      <td class="bar-cell"></td>
-      <td class="rate-val">${a.rate.toFixed(2)}<span class="u">″/H</span></td>
-      <td class="total">${a.day.toFixed(1)}″</td>
-    </tr>
-  `).join('');
-
-  const risk = riskLevel({ temp: c.temperature_2m, chill: c.apparent_temperature, wind: c.wind_speed_10m, rate, depth });
-  
-  let tickerClass = 'ok';
-  if (risk.level === 'MODERATE') tickerClass = 'warn';
-  if (risk.level === 'SEVERE') tickerClass = 'alert';
-  
-  const tickerStr = `
-    <span class="ticker-item ${tickerClass}">[ STATUS: ${risk.level} ]</span>
-    <span class="ticker-item">TEMP: ${Math.round(c.temperature_2m)}°F</span>
-    <span class="ticker-item">WIND: ${Math.round(c.wind_speed_10m)} MPH</span>
-    <span class="ticker-item">SNOW: ${rate.toFixed(2)} IN/HR</span>
-    <span class="ticker-item">ACCUMULATION: ${depth.toFixed(1)} IN</span>
-    <span class="ticker-item">///</span>
-  `;
-  
-  $('#tickerText').innerHTML = tickerStr + tickerStr;
-
-  document.querySelectorAll('.rows div').forEach(r => r.className = '');
-  if (risk.factors.rate || risk.factors.heavy) $('#row-rate').className = 'highlight-' + risk.color;
-  if (risk.factors.temp) $('#row-temp').className = 'highlight-' + risk.color;
-  if (risk.factors.chill) $('#row-chill').className = 'highlight-' + risk.color;
-  if (risk.factors.wind) $('#row-wind').className = 'highlight-' + risk.color;
-
-  $('#date').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}).toUpperCase() + ' // ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  $('#footstamp').textContent = new Date().getFullYear()+'.'+(new Date().getMonth()+1)+'.'+new Date().getDate();
-}
-
-$('#scanBtn').addEventListener('click', () => {
-  const q = $('#city').value.trim();
-  if (q) manualScan(q);
-  else manualScan('Bozeman');
-});
-
-$('#city').addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    $('#scanBtn').click();
-  }
-});
-
-window.addEventListener('resize', () => {
-  if (currentSeasons.length > 0) renderHistory(currentSeasons);
-});
-
-(function(){
-  var TONES=[['#bcc5cd','#a0abb5'],['#a3aeb8','#8996a1'],['#9ba6b1','#8794a1']];
-  function defs(){
-    var o='<defs>';
-    TONES.forEach(function(t,ti){[0,1].forEach(function(di){
-      var c=di===0?['0%','0%','100%','100%']:['100%','0%','0%','100%'];
-      o+='<linearGradient id="g'+ti+di+'" x1="'+c[0]+'" y1="'+c[1]+'" x2="'+c[2]+'" y2="'+c[3]+'"><stop offset="0%" stop-color="'+t[0]+'"/><stop offset="100%" stop-color="'+t[1]+'"/></linearGradient>';
-    });});
-    return o+'</defs>';
-  }
-  function build(){
-    var svg=document.getElementById('tris-svg');if(!svg)return;
-    var vw=window.innerWidth,vh=window.innerHeight,m=vw<768;
-    var W=vw/(m?3.5:6.5),H=W*0.866,PAD=3;
-    var cols=Math.ceil(vw/(W/2))+4,rows=Math.ceil(vh/H)+3,out=[];
-    for(var r=-1;r<=rows;r++){for(var c=-2;c<=cols;c++){
-      var l=c*(W/2),t=r*H,up=(c+r)%2===0,d=up?0:1;
-      var p=up?(l+W/2)+','+(t-PAD)+' '+(l-PAD)+','+(t+H+PAD)+' '+(l+W+PAD)+','+(t+H+PAD)
-             :(l-PAD)+','+(t-PAD)+' '+(l+W+PAD)+','+(t-PAD)+' '+(l+W/2)+','+(t+H+PAD);
-      var bd=-(Math.abs(r*0.83+c*0.61)%15),cell='';
-      for(var k=0;k<3;k++){cell+='<polygon class="tri" points="'+p+'" fill="url(#g'+k+d+')" style="animation-delay:'+(bd-k*5).toFixed(2)+'s"/>';}
-      out.push(cell);
-    }}
-    svg.innerHTML=defs()+'<rect width="100%" height="100%" fill="var(--bg)"/><g>'+out.join('')+'</g>';
-    svg.setAttribute('viewBox','0 0 '+vw+' '+vh);
-    svg.setAttribute('preserveAspectRatio','none');
-    svg.setAttribute('shape-rendering','auto');
-  }
-  build();
-  var t;window.addEventListener('resize',function(){clearTimeout(t);t=setTimeout(build,200)});
-})();
-
-(function(){
-  var t=null;
-  window.addEventListener('scroll',function(){
-    if(!isScrolling){document.body.classList.add('is-scrolling');isScrolling=true;}
-    clearTimeout(t);
-    t=setTimeout(function(){document.body.classList.remove('is-scrolling');isScrolling=false;},140);
-  },{passive:true});
-})();
-</script>
+  <script src="script.js"></script>
 </body>
 </html>
