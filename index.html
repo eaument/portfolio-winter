@@ -2,28 +2,71 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>AURA BioLabs — Longevity Clinic</title>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SNOWFALL // Telemetry</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#dfe3e7;--ink:#1b2128;--mute:#66707a;--line:rgba(110,120,130,.4);--cer:#35c6ff;--cer2:#1d6fa8;--navy:#0d2c4a;--ease:cubic-bezier(.2,.7,.2,1)}
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth;scroll-padding-top:70px}
-body{font-family:Montserrat,Arial,sans-serif;background:var(--bg);color:var(--ink);overflow-x:hidden;line-height:1.5}
-a{color:inherit;text-decoration:none}button,input,select{font-family:inherit;color:inherit}
-main,footer{position:relative;z-index:2}
-section{position:relative;padding:120px 6vw}
-.wrap{max-width:1240px;margin:0 auto}
-.micro{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#5f686f;font-weight:500}
-
-/* backdrop-filter removed — was the source of white compositor
-   specks during scroll. Alpha raised to compensate visually. */
-.glass{
-  background:rgba(238,241,244,.92);
-  border:1px solid rgba(255,255,255,.7);
+:root {
+  --bg: #e4e7eb;
+  --ink: #0a0a0a;
+  --mute: #6a7580;
+  --line: rgba(10, 10, 10, 0.12);
+  --line-heavy: rgba(10, 10, 10, 0.3);
+  --cyan: #00a8ff;
+  --cyan-dim: rgba(0, 168, 255, 0.15);
+  --warn: #ff3b30;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
-/* ---------- BACKGROUND LAYER ---------- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Montserrat', Arial, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  overflow-x: hidden;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+main, footer {
+  position: relative;
+  z-index: 2;
+}
+
+.wrap {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 5vw;
+}
+
+/* DBH Typography */
+.micro {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--mute);
+  font-weight: 500;
+}
+
+.h2 {
+  font-weight: 200;
+  text-transform: uppercase;
+  line-height: 1;
+  font-size: clamp(28px, 4vw, 48px);
+  letter-spacing: 0.15em;
+}
+
+/* Background & Atmosphere */
 .bg-layer {
   position: fixed;
   inset: 0;
@@ -31,8 +74,6 @@ section{position:relative;padding:120px 6vw}
   pointer-events: none;
   background: var(--bg);
   overflow: hidden;
-  /* Isolate this fixed layer's paint so scrolled content above
-     doesn't trigger re-rasterization artifacts here. */
   contain: paint;
 }
 
@@ -45,131 +86,819 @@ section{position:relative;padding:120px 6vw}
 }
 
 @keyframes layerCycle {
-  0%, 40%   { opacity: 1; }
-  60%, 90%  { opacity: 0; }
-  100%      { opacity: 1; }
+  0%, 40% { opacity: 1; }
+  60%, 90% { opacity: 0; }
+  100% { opacity: 1; }
 }
+
 .tri {
   animation: layerCycle 15s linear infinite;
 }
 
-/* will-change removed — layer promotion was causing seams
-   during scroll. White softened from 0.12 → 0.08. */
 .sweep {
   position: absolute;
   inset: 0;
-  background: linear-gradient(115deg,
-    transparent 42%,
-    rgba(255,255,255,0.08) 50%,
-    transparent 58%
-  );
+  background: linear-gradient(115deg, transparent 42%, rgba(255, 255, 255, 0.15) 50%, transparent 58%);
   animation: sweep 22s linear infinite;
   pointer-events: none;
 }
+
 @keyframes sweep {
-  0%   { transform: translateX(-60%); }
+  0% { transform: translateX(-60%); }
   100% { transform: translateX(60%); }
 }
 
 .vignette {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at center, transparent 35%, rgba(55,65,80,0.20) 100%);
+  background: radial-gradient(ellipse at center, transparent 30%, rgba(180, 190, 200, 0.4) 100%);
   pointer-events: none;
 }
 
-.rules{position:relative;height:8px;margin-bottom:44px;max-width:900px}
-.rules i{position:absolute;top:3px;height:1px;background:#7b848c}
-.rules i:nth-child(1){left:0;width:46%}.rules i:nth-child(2){left:50%;width:32%}
-.title{font-weight:200;text-transform:uppercase;line-height:1.04;font-size:clamp(42px,8vw,120px);text-shadow:1.5px 1.5px 0 rgba(0,0,0,.10)}
-.title.sm{font-size:clamp(34px,5.5vw,78px)}
-.lead{font-weight:300;font-size:clamp(16px,1.8vw,22px);line-height:1.8;color:#3f474e;max-width:600px;margin-top:26px}
-
-.tabs{display:flex;flex-wrap:wrap;gap:16px}
-.tab{position:relative;display:inline-flex;align-items:center;min-width:170px;height:46px;padding:0 24px;border:0;background:none;cursor:pointer;font:500 11px/1 Montserrat,sans-serif;letter-spacing:.17em;text-transform:uppercase;color:#e7ebef}
-.tab span{position:relative;z-index:2}
-.tab i{position:absolute;inset:0;background:linear-gradient(90deg,#4a5059,#282e36);clip-path:polygon(0 0,100% 0,calc(100% - 14px) 100%,0 100%);transition:all .45s var(--ease)}
-.tab.on i{background:linear-gradient(100deg,var(--navy),var(--cer2) 52%,var(--navy));clip-path:polygon(0 0,100% 0,100% 100%,0 100%)}
-.tab.on{color:#fff}
-.tab.on::after{content:"";position:absolute;left:6%;right:6%;bottom:-16px;height:22px;background:radial-gradient(ellipse,rgba(53,198,255,.8),transparent 70%);filter:blur(5px)}
-.live{display:inline-flex;align-items:center;gap:8px}
-.live::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--cer);box-shadow:0 0 10px var(--cer)}
-
-/* nav backdrop-filter removed — same fix. Alpha raised from
-   .65 → .92 so it still feels like frosted glass visually. */
-nav{
-  position:fixed;top:0;left:0;right:0;z-index:50;height:56px;
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 6vw;
-  background:rgba(223,227,231,.92);
-  border-bottom:1px solid var(--line)
+.is-scrolling .tri,
+.is-scrolling .sweep {
+  animation-play-state: paused;
 }
-.logo{font-weight:500;letter-spacing:.3em;font-size:12px;text-transform:uppercase}
-.navlinks{display:flex;gap:34px}
-.navlinks a{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:#4f585f;font-weight:500}
-.navcta{font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;font-weight:600;color:#fff;padding:11px 20px;background:linear-gradient(100deg,var(--navy),var(--cer2))}
 
-.hero{min-height:100vh;display:flex;padding-top:140px;padding-bottom:80px}
-.hero-inner{width:100%;display:flex;flex-direction:column;justify-content:space-between;gap:70px}
-.eyebrow{margin-bottom:26px;display:flex;gap:18px;flex-wrap:wrap}
-
-.sgrid{display:grid;grid-template-columns:repeat(12,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-top:40px}
-.tile{padding:26px;min-height:200px}
-.num{font-weight:200;font-size:clamp(44px,5vw,66px);line-height:1}
-
-.chips{display:flex;flex-wrap:wrap;gap:10px;margin:50px 0 34px}
-.chip{padding:10px 18px;border:1px solid rgba(27,33,40,.3);background:transparent;font:500 10.5px Montserrat,sans-serif;letter-spacing:.18em;text-transform:uppercase;cursor:pointer}
-.chip[aria-pressed="true"]{background:var(--navy);color:#fff}
-.reg{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}
-.svc{padding:30px}.svc[hidden]{display:none}
-
-.book{display:grid;grid-template-columns:1fr 1.15fr;gap:70px;align-items:start}
-.form{padding:42px}
-.sb{display:none}.sb.on{display:block}
-.optg{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.opt{position:relative;display:block;cursor:pointer}
-.opt input{position:absolute;opacity:0;inset:0}
-.ob{display:block;padding:15px;border:1px solid var(--line);background:rgba(255,255,255,.35);height:100%}
-.opt input:checked+.ob{border-color:var(--cer2);background:rgba(53,198,255,.13)}
-.field{width:100%;background:transparent;border:0;border-bottom:1px solid #7b848c;padding:12px 0;font:400 15px Montserrat,sans-serif;outline:0}
-.err{font-size:12px;color:#b3433d;margin-top:6px}
-.slots{display:flex;flex-wrap:wrap;gap:10px}
-.slot{padding:11px 16px;border:1px solid rgba(27,33,40,.35);background:transparent;cursor:pointer}
-.slot.on{background:var(--navy);color:#fff}
-.slot:disabled{opacity:.35}
-.submit{width:100%;height:56px;border:0;cursor:pointer;color:#fff;font:600 11.5px Montserrat,sans-serif;letter-spacing:.22em;text-transform:uppercase;background:linear-gradient(100deg,var(--navy),var(--cer2) 52%,var(--navy))}
-.done{display:none}.done.show{display:block}
-
-footer{background:#12171d;color:#c3c9d0;padding:80px 6vw 36px}
-footer a,footer p{display:block;font-size:14px;margin-bottom:12px;font-weight:300}
-
-@media(max-width:980px){
-  .book{grid-template-columns:1fr;gap:40px}
-  .reg{grid-template-columns:1fr 1fr}
-  .navlinks{display:none}
-  section{padding:80px 5vw}
-  .hero{padding-top:120px;padding-bottom:60px}
-  .sgrid .tile{grid-column:span 6 !important}
+/* DBH Glitch Animation */
+@keyframes dbhGlitch {
+  0%, 100% { opacity: 1; transform: none; }
+  5% { opacity: 0.8; transform: translateX(1px); }
+  6% { opacity: 1; transform: none; }
+  50% { opacity: 1; transform: none; }
+  52% { opacity: 0.6; transform: translateX(-1px); }
+  53% { opacity: 1; transform: none; }
 }
-@media(max-width:600px){
-  .reg,.optg{grid-template-columns:1fr}
-  section{padding:64px 4vw}
-  .hero{padding-top:110px;padding-bottom:40px}
-  .title{font-size:clamp(36px,9vw,52px)}
-  .title.sm{font-size:clamp(30px,7vw,42px)}
-  .lead{font-size:15px;line-height:1.7}
-  .tile{padding:20px;min-height:auto}
-  .num{font-size:36px}
-  .form{padding:26px 20px}
-  .micro{font-size:9px}
-  .sgrid .tile{grid-column:span 12 !important}
-  .navcta{padding:9px 14px;font-size:9.5px}
-  .tab{min-width:140px;height:40px;font-size:10px}
-  .rules{margin-bottom:32px}
+
+.glitch:hover {
+  animation: dbhGlitch 0.4s linear;
+  color: var(--cyan);
 }
-@media(prefers-reduced-motion:reduce){
-  .tri{animation:none !important;opacity:.85 !important}
-  .sweep{animation:none !important;display:none}
+
+/* Nav */
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: calc(72px + env(safe-area-inset-top, 0px));
+  padding: env(safe-area-inset-top, 0px) max(5vw, env(safe-area-inset-right, 0px)) 0 max(5vw, env(safe-area-inset-left, 0px));
+  background: linear-gradient(to bottom, var(--bg) 30%, transparent 100%);
+  border-bottom: 1px solid var(--line);
+}
+
+/* Changed to div to remove hyperlink feel */
+.brand {
+  font-weight: 600;
+  letter-spacing: 0.4em;
+  font-size: 13px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--ink);
+}
+
+.brand::before {
+  content: "";
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 9px solid var(--cyan);
+  filter: drop-shadow(0 0 4px rgba(0, 168, 255, 0.4));
+}
+
+.nav-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.nav-status span {
+  color: var(--cyan);
+}
+
+/* DBH Panels */
+.hud-panel {
+  position: relative;
+  padding: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 24px), calc(100% - 24px) 100%, 0 100%);
+  transition: all 0.3s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.hud-panel:hover {
+  background: rgba(255, 255, 255, 0.35);
+  border-color: var(--cyan);
+}
+
+.hud-panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 32px;
+  height: 2px;
+  background: var(--cyan);
+}
+
+.hud-panel::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 2px;
+  height: 32px;
+  background: var(--cyan);
+}
+
+section.sec {
+  padding: 0 0 120px;
+}
+
+.sec-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin: 0 0 40px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.sec-head .micro {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--cyan);
+}
+
+/* Hero */
+.hero {
+  padding: calc(140px + env(safe-area-inset-top, 0px)) 0 60px;
+}
+
+.hero-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 60px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.hero-loc {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hero-loc .city {
+  font-weight: 200;
+  font-size: 24px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.hero-loc .date {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.storm-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  border: 1px solid var(--warn);
+  color: var(--warn);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  background: rgba(255, 59, 48, 0.05);
+}
+
+.storm-tag::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: currentColor;
+  clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+}
+
+.hero-main {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+
+.hero-left {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.rate-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rate-label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--cyan);
+  opacity: 0.3;
+}
+
+/* Smaller, precise readout number */
+.rate {
+  font-weight: 200;
+  font-size: clamp(48px, 6vw, 72px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: baseline;
+}
+
+.rate-unit {
+  font-size: 0.35em;
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--mute);
+  margin-left: 12px;
+  line-height: 1.2;
+  display: flex;
+  flex-direction: column;
+}
+
+.rate-unit span:first-child {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.rate-sub {
+  font-weight: 300;
+  font-size: clamp(14px, 2vw, 18px);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin-top: 8px;
+}
+
+.rate-meta {
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--mute);
+  margin-top: 20px;
+}
+
+.rate-meta span {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rate-meta strong {
+  color: var(--ink);
+  font-weight: 500;
+  font-size: 18px;
+  letter-spacing: 0;
+}
+
+/* Chart */
+.chart-panel {
+  position: relative;
+  overflow: visible;
+}
+
+.chart-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 32px;
+}
+
+.chart-head .title {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.chart-head .legend {
+  display: flex;
+  gap: 20px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.chart-head .legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chart-head .legend span::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  background: var(--cyan);
+}
+
+.chart-head .legend span.fc::before {
+  background: var(--cyan-dim);
+  border: 1px solid var(--cyan);
+}
+
+.chart {
+  width: 100%;
+  height: 200px;
+  position: relative;
+}
+
+.chart svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.chart-line {
+  fill: none;
+  stroke: var(--cyan);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.chart-fill {
+  fill: url(#chart-grad);
+  stroke: none;
+}
+
+.chart-grid {
+  stroke: var(--line);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.chart-point {
+  fill: var(--bg);
+  stroke: var(--cyan);
+  stroke-width: 2;
+}
+
+.chart-point.pulse {
+  animation: pointPulse 2s infinite;
+}
+
+@keyframes pointPulse {
+  0% { r: 4; opacity: 1; }
+  50% { r: 8; opacity: 0.3; }
+  100% { r: 4; opacity: 1; }
+}
+
+.chart-labels {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--mute);
+  margin-top: 16px;
+}
+
+.chart-labels span:nth-child(2) {
+  color: var(--cyan);
+}
+
+/* Readout Stats */
+.readout {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  border-top: 1px solid var(--line-heavy);
+  margin-top: 80px;
+  padding-top: 40px;
+}
+
+.rcell {
+  padding-right: 24px;
+  border-right: 1px solid var(--line);
+  position: relative;
+}
+
+.rcell:last-child {
+  border-right: 0;
+  padding-right: 0;
+}
+
+.rcell::before {
+  content: "";
+  position: absolute;
+  top: -41px;
+  left: 0;
+  width: 1px;
+  height: 8px;
+  background: var(--line-heavy);
+}
+
+.rcell:first-child::before {
+  display: none;
+}
+
+.rcell .k {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--mute);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rcell .k::before {
+  content: "//";
+  color: var(--cyan);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.rcell .v {
+  font-weight: 200;
+  font-size: clamp(32px, 3.5vw, 48px);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.rcell .v small {
+  font-size: 0.35em;
+  color: var(--mute);
+  font-weight: 400;
+  margin-left: 6px;
+  letter-spacing: 0.1em;
+}
+
+/* Hourly - DBH Timeline */
+.hourly-wrap {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  border-top: 1px solid var(--line-heavy);
+  position: relative;
+}
+
+.hourly-wrap::before {
+  content: "";
+  position: absolute;
+  top: 40px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--line);
+}
+
+.hour {
+  padding: 0 10px 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+  position: relative;
+  border-right: 1px solid var(--line);
+  z-index: 2;
+}
+
+.hour:last-child {
+  border-right: 0;
+}
+
+.hour .t {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--mute);
+  height: 20px;
+}
+
+.hour .node {
+  width: 9px;
+  height: 9px;
+  background: var(--bg);
+  border: 2px solid var(--mute);
+  border-radius: 50%;
+  margin-top: 11px;
+  position: relative;
+  z-index: 3;
+  transition: all 0.3s;
+}
+
+.hour .i {
+  color: var(--mute);
+  height: 32px;
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.hour .amt {
+  font-weight: 300;
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.hour .amt small {
+  font-size: 0.6em;
+  color: var(--mute);
+  font-weight: 300;
+  margin-left: 3px;
+}
+
+.hour .intensity {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--mute);
+  margin-top: 4px;
+}
+
+.hour .intensity.hv {
+  color: var(--warn);
+  font-weight: 600;
+}
+
+.hour.now .t {
+  color: var(--cyan);
+  font-weight: 600;
+}
+
+.hour.now .node {
+  border-color: var(--cyan);
+  background: var(--cyan);
+  box-shadow: 0 0 12px var(--cyan);
+}
+
+.hour.now .i {
+  color: var(--cyan);
+}
+
+.hour.now .amt {
+  color: var(--cyan);
+}
+
+.hour.now .intensity {
+  color: var(--cyan);
+}
+
+/* Regional Table */
+.regional-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.regional-table th {
+  text-align: left;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--mute);
+  font-weight: 500;
+  padding: 0 0 16px;
+  border-bottom: 1px solid var(--line-heavy);
+}
+
+.regional-table th.num {
+  text-align: right;
+}
+
+.regional-table td {
+  padding: 24px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+  vertical-align: middle;
+  transition: all 0.2s;
+}
+
+.regional-table tr:hover td {
+  background: var(--cyan-dim);
+  border-bottom-color: var(--cyan);
+}
+
+.regional-table .loc {
+  font-weight: 400;
+  padding-left: 20px;
+  position: relative;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.regional-table .loc::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  border: 1px solid var(--mute);
+  border-radius: 50%;
+}
+
+.regional-table tr:hover .loc::before {
+  background: var(--cyan);
+  border-color: var(--cyan);
+}
+
+.regional-table .loc .sub {
+  display: block;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--mute);
+  margin-top: 6px;
+}
+
+.regional-table .bar-cell {
+  width: 40%;
+  padding: 0 32px;
+}
+
+.regional-table .rbar {
+  height: 2px;
+  background: var(--line);
+  position: relative;
+}
+
+.regional-table .rbar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--ink);
+  transition: width 0.4s;
+}
+
+.regional-table tr:hover .rbar i {
+  background: var(--cyan);
+}
+
+.regional-table .rate-val {
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  width: 120px;
+}
+
+.regional-table .rate-val .u {
+  color: var(--mute);
+  font-weight: 300;
+  margin-left: 4px;
+  font-size: 12px;
+}
+
+.regional-table .total {
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--mute);
+  font-variant-numeric: tabular-nums;
+  width: 120px;
+}
+
+/* Footer */
+footer {
+  margin-top: 120px;
+  border-top: 1px solid var(--line-heavy);
+  padding: 40px 0 calc(40px + env(safe-area-inset-bottom, 0px));
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .hero-main {
+    grid-template-columns: 1fr;
+    gap: 64px;
+  }
+  .readout {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+  }
+  .rcell {
+    border-right: 0;
+    padding-right: 0;
+  }
+  .hourly-wrap {
+    grid-template-columns: repeat(6, 1fr);
+  }
+  .hour:nth-child(6n) {
+    border-right: 0;
+  }
+  .hour {
+    border-bottom: 1px solid var(--line);
+  }
+}
+
+@media (max-width: 600px) {
+  .wrap {
+    padding: 0 4vw;
+  }
+  .hero-loc .city {
+    font-size: 18px;
+  }
+  .readout {
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .hourly-wrap {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .hour:nth-child(6n) {
+    border-right: 1px solid var(--line);
+  }
+  .hour:nth-child(4n) {
+    border-right: 0;
+  }
+  .regional-table .bar-cell {
+    display: none;
+  }
+  .hud-panel {
+    padding: 24px 20px;
+  }
+  .rate {
+    font-size: clamp(36px, 10vw, 48px);
+  }
+  .rate-unit {
+    margin-left: 8px;
+    font-size: 0.4em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tri {
+    animation: none !important;
+    opacity: 0.85 !important;
+  }
+  .sweep {
+    animation: none !important;
+    display: none;
+  }
+  .glitch:hover {
+    animation: none;
+    color: var(--cyan);
+  }
 }
 </style>
 </head>
@@ -181,515 +910,241 @@ footer a,footer p{display:block;font-size:14px;margin-bottom:12px;font-weight:30
   <div class="vignette"></div>
 </div>
 
-<nav>
-  <a class="logo" href="#top">AURA BioLabs</a>
-  <div class="navlinks"><a href="#status">Status</a><a href="#services">Services</a><a href="#book">Calibrate</a></div>
-  <a class="navcta" href="#book">Book a visit</a>
+<nav class="nav">
+  <div class="brand">SNOWFALL</div>
+  <div class="nav-status"><span>■</span> STORM ATLAS</div>
 </nav>
-<main>
-<section id="top" class="hero">
-  <div class="wrap hero-inner">
-    <div>
-      <div class="eyebrow micro"><span class="live">System online</span><span>New York</span><span>Washington D.C.</span></div>
-      <div class="rules"><i></i><i></i></div>
-      <h1 class="title">Tune the<br>system.</h1>
-      <p class="lead">Your biology, measured continuously and adjusted with precision.</p>
+
+<main id="top">
+
+  <section class="hero">
+    <div class="wrap">
+      
+      <div class="hero-top">
+        <div class="hero-loc">
+          <span class="micro">Telemetry Station</span>
+          <span class="city">Bozeman, MT</span>
+          <span class="date" id="date">—</span>
+        </div>
+        <span class="storm-tag">Warning: Active</span>
+      </div>
+
+      <div class="hero-main">
+        <div class="hero-left">
+          <div>
+            <div class="rate-label">Snowfall rate</div>
+            <div class="rate glitch">
+              1.2
+              <span class="rate-unit">
+                <span>IN</span>
+                <span>/ HR</span>
+              </span>
+            </div>
+          </div>
+          <div class="rate-sub">Moderate · Heavy at times</div>
+          <div class="rate-meta">
+            <span>Temp <strong>22°F</strong></span>
+            <span>Wind <strong>08 NW</strong></span>
+            <span>Chill <strong>11°F</strong></span>
+          </div>
+        </div>
+
+        <div class="chart-panel hud-panel">
+          <div class="chart-head">
+            <span class="title">24H ACCUMULATION</span>
+            <div class="legend">
+              <span>Past</span>
+              <span class="fc">Forecast</span>
+            </div>
+          </div>
+          
+          <div class="chart">
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="chart-grad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#00a8ff" stop-opacity="0.3"/>
+                  <stop offset="100%" stop-color="#00a8ff" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <line class="chart-grid" x1="0" y1="25" x2="100" y2="25" />
+              <line class="chart-grid" x1="0" y1="50" x2="100" y2="50" />
+              <line class="chart-grid" x1="0" y1="75" x2="100" y2="75" />
+              <path class="chart-fill" d="M0,100 L0,85 L8.3,80 L16.6,70 L25,55 L33.3,40 L41.6,45 L50,60 L58.3,70 L66.6,80 L75,85 L83.3,90 L100,90 L100,100 Z" />
+              <path class="chart-line" d="M0,85 L8.3,80 L16.6,70 L25,55 L33.3,40 L41.6,45 L50,60 L58.3,70 L66.6,80 L75,85 L83.3,90 L100,90" />
+              <path class="chart-line" d="M66.6,80 L75,85 L83.3,90 L100,90" stroke-dasharray="4 4" stroke="rgba(0,168,255,0.4)" />
+              <circle class="chart-point pulse" cx="66.6" cy="80" r="4" />
+            </svg>
+          </div>
+
+          <div class="chart-labels">
+            <span>-12H</span>
+            <span>NOW</span>
+            <span>+6H</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="readout">
+        <div class="rcell"><div class="k">24H</div><div class="v">11<small>IN</small></div></div>
+        <div class="rcell"><div class="k">48H</div><div class="v">18<small>IN</small></div></div>
+        <div class="rcell"><div class="k">STORM</div><div class="v">23<small>IN</small></div></div>
+        <div class="rcell"><div class="k">NEXT 6H</div><div class="v">3.4<small>IN</small></div></div>
+        <div class="rcell"><div class="k">SEASON</div><div class="v">147<small>IN</small></div></div>
+      </div>
+
     </div>
-    <div class="tabs" id="heroTabs">
-      <a class="tab on" href="#book"><i></i><span>Calibrate</span></a>
-      <a class="tab" href="#status"><i></i><span>Status</span></a>
-      <a class="tab" href="#services"><i></i><span>Services</span></a>
+  </section>
+
+  <section class="sec">
+    <div class="wrap">
+      <div class="sec-head">
+        <div><span class="micro">01 / Timeline</span><h2 class="h2">Forecast</h2></div>
+        <span class="micro">NEXT 12 HOURS</span>
+      </div>
+      <div class="hourly-wrap" id="hourly"></div>
     </div>
-  </div>
-</section>
-<section id="status"><div class="wrap"><h2 class="title sm">System status</h2><div class="sgrid" id="sgrid"></div></div></section>
-<section id="services"><div class="wrap"><h2 class="title sm">Service registry</h2>
-  <div class="chips" id="chips">
-    <button class="chip" data-f="all" aria-pressed="true">All</button>
-    <button class="chip" data-f="recovery" aria-pressed="false">Recovery</button>
-    <button class="chip" data-f="diagnostics" aria-pressed="false">Diagnostics</button>
-  </div>
-  <div class="reg" id="reg"></div></div></section>
-<section id="book"><div class="wrap book">
-  <div><h2 class="title sm">Begin<br>calibration.</h2></div>
-  <div class="glass form">
-    <form id="bf" novalidate>
-      <div class="sb on"><div class="optg" id="opts"></div><p class="err" id="e-svc"></p></div>
-      <div class="sb"><select class="field" id="age"><option value="">Age range</option><option>18-29</option><option>30-39</option><option>40+</option></select></div>
-      <div class="sb"><input class="field" type="date" id="date"><div class="slots" id="slots"></div><p class="err" id="e-slot"></p></div>
-      <div class="sb"><input class="field" id="fname" placeholder="Full name"><input class="field" id="email" type="email" placeholder="Email"><p class="err" id="e-name"></p></div>
-      <button type="submit" class="submit" id="next">Continue</button>
-    </form>
-    <div class="done" id="done"><h3>Calibration booked</h3></div>
-  </div>
-</div></section>
+  </section>
+
+  <section class="sec">
+    <div class="wrap">
+      <div class="sec-head">
+        <div><span class="micro">02 / Network</span><h2 class="h2">Surrounding Area</h2></div>
+        <span class="micro">RADIUS 80 MILES</span>
+      </div>
+      <table class="regional-table">
+        <thead>
+          <tr><th>Location</th><th class="bar-cell"></th><th class="num">Rate</th><th class="num">24H</th></tr>
+        </thead>
+        <tbody id="regional"></tbody>
+      </table>
+    </div>
+  </section>
+
 </main>
-<footer><p>AURA BioLabs · Concept website · Not medical advice.</p></footer>
+
+<footer>
+  <div class="wrap foot">
+    <span>SNOWFALL // SYS.V3</span>
+    <span id="footstamp">—</span>
+  </div>
+</footer>
 
 <script>
 (function(){
 'use strict';
 var $=function(s,r){return (r||document).querySelector(s)};
-var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
 
-/* ============================================================
-   1. TRIANGLE FIELD
-   -----------------------------------------------------------
-   PAD increased 1.5 → 3 so adjacent polygons overlap heavily.
-   The overlap used to be tight enough that sub-pixel AA seams
-   could flash during scroll. Bigger overlap = no gaps = no
-   specks at seams.
-   shape-rendering changed from geometricPrecision to auto —
-   high-quality AA on hundreds of animated polygons was also
-   contributing to compositor thrash.
-   ============================================================ */
+/* Triangle field */
 (function(){
-
-  var TONES = [
-    ['#bcc5cd', '#a0abb5'],  // tone 0 — pale steel
-    ['#a3aeb8', '#8996a1'],  // tone 1 — medium steel
-    ['#9ba6b1', '#8794a1']   // tone 2 — deeper steel (lightened)
-  ];
-
-  function buildDefs(){
-    var out = '<defs>';
-    TONES.forEach(function(t, ti){
-      [0, 1].forEach(function(di){
-        var coords = di === 0
-          ? ['0%', '0%', '100%', '100%']
-          : ['100%', '0%', '0%', '100%'];
-        out += '<linearGradient id="grad-' + ti + '-' + di + '"' +
-               ' x1="' + coords[0] + '" y1="' + coords[1] + '"' +
-               ' x2="' + coords[2] + '" y2="' + coords[3] + '">' +
-               '<stop offset="0%" stop-color="' + t[0] + '"/>' +
-               '<stop offset="100%" stop-color="' + t[1] + '"/>' +
-               '</linearGradient>';
-      });
-    });
-    return out + '</defs>';
+  var TONES=[['#bcc5cd','#a0abb5'],['#a3aeb8','#8996a1'],['#9ba6b1','#8794a1']];
+  function defs(){
+    var o='<defs>';
+    TONES.forEach(function(t,ti){[0,1].forEach(function(di){
+      var c=di===0?['0%','0%','100%','100%']:['100%','0%','0%','100%'];
+      o+='<linearGradient id="g'+ti+di+'" x1="'+c[0]+'" y1="'+c[1]+'" x2="'+c[2]+'" y2="'+c[3]+'"><stop offset="0%" stop-color="'+t[0]+'"/><stop offset="100%" stop-color="'+t[1]+'"/></linearGradient>';
+    });});
+    return o+'</defs>';
   }
-
-  function buildGrid(){
-    var svg = document.getElementById('tris-svg');
-    if(!svg) return;
-
-    var vw = window.innerWidth;
-    var vh = window.innerHeight;
-    var isMobile = vw < 768;
-
-    var W = vw / (isMobile ? 3.5 : 6.5);
-    var H = W * 0.866;
-    var PAD = 3; /* was 1.5 */
-
-    var cols = Math.ceil(vw / (W / 2)) + 4;
-    var rows = Math.ceil(vh / H) + 3;
-
-    var out = [];
-
-    for(var r = -1; r <= rows; r++){
-      for(var c = -2; c <= cols; c++){
-        var left = c * (W / 2);
-        var top  = r * H;
-        var isUp = (c + r) % 2 === 0;
-        var dir  = isUp ? 0 : 1;
-
-        var pts = isUp
-          ? (left + W/2) + ',' + (top - PAD) +
-            ' ' + (left - PAD) + ',' + (top + H + PAD) +
-            ' ' + (left + W + PAD) + ',' + (top + H + PAD)
-          : (left - PAD) + ',' + (top - PAD) +
-            ' ' + (left + W + PAD) + ',' + (top - PAD) +
-            ' ' + (left + W/2) + ',' + (top + H + PAD);
-
-        var baseDelay = -(Math.abs(r * 0.83 + c * 0.61) % 15);
-
-        var cell = '';
-        for(var t = 0; t < 3; t++){
-          var delay = baseDelay - t * 5;
-          cell += '<polygon class="tri"' +
-                  ' points="' + pts + '"' +
-                  ' fill="url(#grad-' + t + '-' + dir + ')"' +
-                  ' style="animation-delay:' + delay.toFixed(2) + 's"/>';
-        }
-        out.push(cell);
-      }
-    }
-
-    svg.innerHTML =
-      buildDefs() +
-      '<rect width="100%" height="100%" fill="var(--bg)"/>' +
-      '<g>' + out.join('') + '</g>';
-
-    svg.setAttribute('viewBox', '0 0 ' + vw + ' ' + vh);
-    svg.setAttribute('preserveAspectRatio', 'none');
-    /* was 'geometricPrecision' — switched to default 'auto' for
-       better compositor performance during scroll. */
-    svg.setAttribute('shape-rendering', 'auto');
+  function build(){
+    var svg=document.getElementById('tris-svg');if(!svg)return;
+    var vw=window.innerWidth,vh=window.innerHeight,m=vw<768;
+    var W=vw/(m?3.5:6.5),H=W*0.866,PAD=3;
+    var cols=Math.ceil(vw/(W/2))+4,rows=Math.ceil(vh/H)+3,out=[];
+    for(var r=-1;r<=rows;r++){for(var c=-2;c<=cols;c++){
+      var l=c*(W/2),t=r*H,up=(c+r)%2===0,d=up?0:1;
+      var p=up?(l+W/2)+','+(t-PAD)+' '+(l-PAD)+','+(t+H+PAD)+' '+(l+W+PAD)+','+(t+H+PAD)
+             :(l-PAD)+','+(t-PAD)+' '+(l+W+PAD)+','+(t-PAD)+' '+(l+W/2)+','+(t+H+PAD);
+      var bd=-(Math.abs(r*0.83+c*0.61)%15),cell='';
+      for(var k=0;k<3;k++){cell+='<polygon class="tri" points="'+p+'" fill="url(#g'+k+d+')" style="animation-delay:'+(bd-k*5).toFixed(2)+'s"/>';}
+      out.push(cell);
+    }}
+    svg.innerHTML=defs()+'<rect width="100%" height="100%" fill="var(--bg)"/><g>'+out.join('')+'</g>';
+    svg.setAttribute('viewBox','0 0 '+vw+' '+vh);
+    svg.setAttribute('preserveAspectRatio','none');
+    svg.setAttribute('shape-rendering','auto');
   }
-
-  buildGrid();
-
-  var resizeTimer;
-  window.addEventListener('resize', function(){
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(buildGrid, 200);
-  });
+  build();
+  var t;window.addEventListener('resize',function(){clearTimeout(t);t=setTimeout(build,200)});
 })();
 
-/* ============================================================
-   2. HERO TABS
-   ============================================================ */
+/* Scroll pause */
+var isScrolling=false;
 (function(){
-  var tabs = $$('#heroTabs .tab'); if(!tabs.length) return;
-  function sel(t){ tabs.forEach(function(x){ x.classList.toggle('on', x === t); }); }
-  tabs.forEach(function(t){
-    t.addEventListener('mouseenter', function(){ sel(t); });
-    t.addEventListener('focus',      function(){ sel(t); });
-  });
+  var t=null;
+  window.addEventListener('scroll',function(){
+    if(!isScrolling){document.body.classList.add('is-scrolling');isScrolling=true;}
+    clearTimeout(t);
+    t=setTimeout(function(){document.body.classList.remove('is-scrolling');isScrolling=false;},140);
+  },{passive:true});
 })();
 
-/* ============================================================
-   3. LIVE STATUS GRID
-   ============================================================ */
+/* Icons */
+var ICONS={
+  snow:'<g stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"><line x1="12" y1="2" x2="12" y2="22"/><line x1="3.5" y1="7" x2="20.5" y2="17"/><line x1="3.5" y1="17" x2="20.5" y2="7"/><path d="M9 4l3 2 3-2M9 20l3-2 3 2M4 9.5l3.5.5.5-3.5M20 14.5l-3.5-.5-.5 3.5M4 14.5l3.5-.5.5 3.5M20 9.5l-3.5.5-.5-3.5"/></g>',
+  flurry:'<path d="M18 9h-1.26A8 8 0 1 0 9 19h9a5 5 0 0 0 0-10z" fill="currentColor" opacity="0.7"/><g fill="currentColor"><circle cx="8" cy="21" r="0.9"/><circle cx="12" cy="22" r="0.9"/><circle cx="16" cy="21" r="0.9"/></g>',
+  cloud:'<path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" fill="currentColor"/>',
+  partly:'<circle cx="8.5" cy="8.5" r="3" fill="currentColor" opacity="0.65"/><path d="M18.5 12h-1.26A7 7 0 1 0 10 20h8.5a4.5 4.5 0 0 0 0-9z" fill="currentColor"/>'
+};
+function icon(n,s){s=s||24;return '<svg viewBox="0 0 24 24" width="'+s+'" height="'+s+'" aria-hidden="true">'+(ICONS[n]||ICONS.snow)+'</svg>';}
+
+/* Date */
+function pad(n){return String(n).padStart(2,'0')}
 (function(){
-  var grid = $('#sgrid'); if(!grid) return;
-  var M = [
-    {l:'Heart rate variability',u:'ms',b:68,s:6,d:0,c:6,n:'RMSSD · 7-day'},
-    {l:'Cellular recovery',u:'%',b:87,s:3,d:0,c:3,n:'Composite score',ring:1},
-    {l:'Resting heart rate',u:'bpm',b:56,s:2,d:0,c:3,n:'Overnight',low:1},
-    {l:'Blood oxygen',u:'%',b:98,s:1,d:1,c:3,n:'SpO2'},
-    {l:'Sleep efficiency',u:'%',b:91,s:3,d:0,c:3,n:'Last night'},
-    {l:'Inflammation index',u:'mg/L',b:.7,s:.2,d:1,c:3,n:'hs-CRP',low:1},
-    {l:'Core temperature',u:'°C',b:36.6,s:.2,d:1,c:3,n:'Stable'}
-  ];
-
-  M.forEach(function(m){
-    m.v = m.b;
-    m.h = [];
-    for(var i = 0; i < 28; i++) m.h.push(m.b + (Math.random() - .5) * m.s * 1.4);
-
-    var el = document.createElement('div');
-    el.className = 'tile glass';
-    el.style.gridColumn = 'span ' + m.c;
-    el.innerHTML =
-      '<div class="micro" style="display:flex;justify-content:space-between"><span>' + m.l + '</span><span class="live st">OPTIMAL</span></div>' +
-      '<div style="display:flex;align-items:center;gap:14px;margin-top:20px">' +
-        (m.ring
-          ? '<svg viewBox="0 0 80 80" width="76" height="76" style="transform:rotate(-90deg);flex:none"><circle cx="40" cy="40" r="34" fill="none" stroke="rgba(110,120,130,.25)" stroke-width="3"/><circle class="rf" cx="40" cy="40" r="34" fill="none" stroke="#35c6ff" stroke-width="3" stroke-linecap="round" pathLength="1" stroke-dasharray="1 1" stroke-dashoffset="1" style="transition:stroke-dashoffset 1.2s"/></svg>'
-          : '') +
-        '<span class="num">0</span><small class="micro">' + m.u + '</small>' +
-      '</div>' +
-      '<p class="micro" style="margin-top:10px">' + m.n + '</p>' +
-      '<svg class="sp" viewBox="0 0 120 36" preserveAspectRatio="none" style="display:block;width:100%;height:44px;margin-top:14px"><polyline fill="none" stroke="#1d6fa8" stroke-width="1.5" vector-effect="non-scaling-stroke" points=""/></svg>';
-
-    grid.appendChild(el);
-    m.el = el;
-  });
-
-  function draw(m){
-    var num = $('.num', m.el), st = $('.st', m.el), pl = $('polyline', m.el), rf = $('.rf', m.el);
-    num.textContent = m.v.toFixed(m.d);
-
-    var dev = (m.v - m.b) / m.s * (m.low ? -1 : 1);
-    var good = dev > -.35;
-    st.textContent = good ? 'OPTIMAL' : 'NOMINAL';
-    st.style.opacity = good ? 1 : .55;
-
-    var mn = Math.min.apply(null, m.h);
-    var mx = Math.max.apply(null, m.h);
-    var rg = (mx - mn) || 1;
-    var pts = [];
-    m.h.forEach(function(v, i){
-      pts.push((i / (m.h.length - 1) * 120).toFixed(1) + ',' + (33 - (v - mn) / rg * 30).toFixed(1));
-    });
-    pl.setAttribute('points', pts.join(' '));
-    if(rf) rf.style.strokeDashoffset = (1 - m.v / 100).toFixed(3);
+  function tick(){
+    var d=new Date(),dt=$('#date'),fs=$('#footstamp');
+    if(dt)dt.textContent=d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}).toUpperCase()+' // '+pad(d.getHours())+':'+pad(d.getMinutes());
+    if(fs)fs.textContent=d.getFullYear()+'.'+pad(d.getMonth()+1)+'.'+pad(d.getDate())+' // '+pad(d.getHours())+':'+pad(d.getMinutes());
   }
-
-  var last = 0;
-  function loop(ts){
-    if(document.hidden){ requestAnimationFrame(loop); return; }
-    if(ts - last > 1800){
-      last = ts;
-      M.forEach(function(m){
-        var v = m.v + (Math.random() - .5) * m.s * .5;
-        v += (m.b - v) * .15;
-        v = Math.max(m.b - m.s, Math.min(m.b + m.s, v));
-        m.v = v;
-        m.h.push(v);
-        m.h.shift();
-        draw(m);
-      });
-    }
-    requestAnimationFrame(loop);
-  }
-
-  M.forEach(draw);
-  requestAnimationFrame(loop);
+  tick();setInterval(tick,60000);
 })();
 
-/* ============================================================
-   4. SERVICES + FILTER
-   ============================================================ */
-var SV = [
-  {id:'cryo',cat:'recovery',name:'Sub-zero cryotherapy',desc:'Whole-body exposure in a dry sub-zero chamber, designed to support recovery.',meta:'−110 °C · 3 min',spec:[['Temperature','−110 °C'],['Duration','3 minutes'],['Frequency','2–3× weekly']]},
-  {id:'hbot',cat:'recovery',name:'Pressurized oxygen chamber',desc:'Breathe oxygen at increased pressure in a private, monitored chamber.',meta:'Up to 2.0 ATA · 60 min',spec:[['Pressure','Up to 2.0 ATA'],['Duration','60 minutes'],['Supervision','Clinician']]},
-  {id:'red',cat:'regeneration',name:'Red-light therapy',desc:'Targeted red and near-infrared light panels for skin and muscle support.',meta:'660/850 nm · 20 min',spec:[['Wavelength','660 / 850 nm'],['Duration','20 minutes'],['Coverage','Full body']]},
-  {id:'epi',cat:'diagnostics',name:'Epigenetic age test',desc:'A DNA methylation analysis that estimates your biological age.',meta:'Results in 10 days',spec:[['Sample','Blood'],['Results','10 days'],['Report','Clinician-led']]},
-  {id:'panel',cat:'diagnostics',name:'Full biomarker panel',desc:'More than one hundred markers across heart, metabolism and hormones.',meta:'100+ markers · 7 days',spec:[['Markers','100+'],['Fasting','8 hours'],['Results','7 days']]},
-  {id:'iv',cat:'regeneration',name:'NAD+ & nutrient IV',desc:'Clinician-guided infusion tailored to your panel results.',meta:'60–90 min',spec:[['Duration','60–90 min'],['Guided by','Your panel'],['Setting','Private suite']]}
+/* Hourly */
+var HOURLY=[
+  {t:'NOW',i:'snow',amt:1.2,int:'hv'},
+  {t:'+1H',i:'snow',amt:1.0,int:'hv'},
+  {t:'+2H',i:'snow',amt:0.8,int:'md'},
+  {t:'+3H',i:'snow',amt:0.6,int:'md'},
+  {t:'+4H',i:'flurry',amt:0.4,int:'lt'},
+  {t:'+5H',i:'flurry',amt:0.3,int:'lt'},
+  {t:'+6H',i:'flurry',amt:0.2,int:'lt'},
+  {t:'+7H',i:'flurry',amt:0.2,int:'lt'},
+  {t:'+8H',i:'cloud',amt:0.1,int:'lt'},
+  {t:'+9H',i:'cloud',amt:0.1,int:'lt'},
+  {t:'+10H',i:'partly',amt:0,int:'lt'},
+  {t:'+11H',i:'partly',amt:0,int:'lt'}
 ];
-
-var sel = {};
-
-function syncSel(){
-  var n = 0;
-  SV.forEach(function(s){
-    if(sel[s.id]) n++;
-    var b = $('.add[data-id="' + s.id + '"]');
-    if(b){
-      b.setAttribute('aria-pressed', sel[s.id] ? 'true' : 'false');
-      b.textContent = sel[s.id] ? 'Added ✓' : 'Add to calibration';
-    }
-    var i = $('#opts input[value="' + s.id + '"]');
-    if(i) i.checked = !!sel[s.id];
-  });
-  var c = $('#selcount');
-  if(c) c.textContent = n ? n + ' selected.' : 'None selected.';
-}
-
+var INT={lt:'LIGHT',md:'MOD',hv:'HEAVY'};
 (function(){
-  var reg = $('#reg'); if(!reg) return;
-
-  reg.innerHTML = SV.map(function(s, i){
-    return '<article class="svc glass" data-cat="' + s.cat + '"><span class="micro">SVC-0' + (i+1) + ' · ' + s.cat + '</span>' +
-      '<h3 style="font-weight:300;font-size:22px;text-transform:uppercase;margin:20px 0 12px">' + s.name + '</h3>' +
-      '<p style="font-size:14px;line-height:1.7;color:#3f474e;margin-bottom:18px">' + s.desc + '</p>' +
-      '<dl style="border-top:1px solid rgba(110,120,130,.4);margin-bottom:22px">' +
-        s.spec.map(function(p){
-          return '<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(110,120,130,.25);font-size:12.5px"><dt class="micro">' + p[0] + '</dt><dd>' + p[1] + '</dd></div>';
-        }).join('') +
-      '</dl>' +
-      '<button type="button" class="add" data-id="' + s.id + '" aria-pressed="false" style="background:none;border:0;border-bottom:1px solid #1d6fa8;padding:0 0 5px;font:600 10.5px Montserrat,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#1d6fa8;cursor:pointer">Add to calibration</button></article>';
+  var el=document.getElementById('hourly');if(!el)return;
+  el.innerHTML=HOURLY.map(function(h,i){
+    return '<div class="hour'+(i===0?' now':'')+'">'+
+      '<div class="t">'+h.t+'</div>'+
+      '<div class="node"></div>'+
+      '<div class="i">'+icon(h.i,22)+'</div>'+
+      '<div class="amt">'+(h.amt?h.amt:'0')+'<small>″</small></div>'+
+      '<div class="intensity '+h.int+'">'+INT[h.int]+'</div>'+
+      '</div>';
   }).join('');
-
-  reg.addEventListener('click', function(e){
-    var b = e.target.closest('.add'); if(!b) return;
-    sel[b.dataset.id] = !sel[b.dataset.id];
-    syncSel();
-  });
-
-  var chips = $$('#chips .chip');
-  chips.forEach(function(ch){
-    ch.addEventListener('click', function(){
-      chips.forEach(function(x){ x.setAttribute('aria-pressed', x === ch ? 'true' : 'false'); });
-      $$('.svc', reg).forEach(function(c){
-        c.hidden = !(ch.dataset.f === 'all' || c.dataset.cat === ch.dataset.f);
-      });
-    });
-  });
-
-  var opts = $('#opts');
-  if(opts){
-    opts.innerHTML = SV.map(function(s){
-      return '<label class="opt"><input type="checkbox" value="' + s.id + '"><span class="ob"><b style="display:block;font-size:12.5px;margin-bottom:3px">' + s.name + '</b><small style="color:#66707a">' + s.meta + '</small></span></label>';
-    }).join('');
-    opts.addEventListener('change', function(e){
-      if(e.target.value){ sel[e.target.value] = e.target.checked; syncSel(); }
-    });
-  }
 })();
 
-/* ============================================================
-   5. BOOKING (4 steps)
-   ============================================================ */
+/* Regional */
+var REGIONAL=[
+  {n:'BOZEMAN',sub:'HOME STATION',rate:1.2,total:11},
+  {n:'BELGRADE',sub:'12 MI NW',rate:1.0,total:9},
+  {n:'LIVINGSTON',sub:'26 MI E',rate:0.6,total:6},
+  {n:'BIG SKY',sub:'48 MI S',rate:1.8,total:16},
+  {n:'BRIDGER BOWL',sub:'16 MI N · 7,200 FT',rate:2.1,total:19}
+];
 (function(){
-  var bf = $('#bf'); if(!bf) return;
-  var steps = $$('.sb', bf), next = $('#next'), done = $('#done'), step = 0, slot = null;
-  var dateEl = $('#date');
-  function z(n){ return String(n).padStart(2, '0'); }
-  function iso(d){ return d.getFullYear() + '-' + z(d.getMonth()+1) + '-' + z(d.getDate()); }
-  var t = new Date(), mx = new Date(); mx.setDate(mx.getDate() + 90);
-  dateEl.min = iso(t); dateEl.max = iso(mx);
-
-  var back = document.createElement('button');
-  back.type = 'button'; back.textContent = '← Back'; back.hidden = true;
-  back.style.cssText = 'background:none;border:0;font:600 10.5px Montserrat,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#66707a;cursor:pointer;padding:12px 4px;margin-top:18px;display:block';
-  bf.appendChild(back);
-
-  var review = document.createElement('div');
-  review.style.cssText = 'margin:0 0 20px;border-top:1px solid rgba(110,120,130,.4)';
-  steps[3].insertBefore(review, steps[3].firstChild);
-
-  var ok = document.createElement('label');
-  ok.style.cssText = 'display:flex;gap:12px;margin-top:22px;font-size:13px;line-height:1.6;color:#3f474e;cursor:pointer';
-  ok.innerHTML = '<input type="checkbox" id="ok" style="margin-top:3px"><span>I understand AURA BioLabs will contact me to confirm, and that this is not emergency care.</span>';
-  steps[3].appendChild(ok);
-
-  var eok = document.createElement('p');
-  eok.className = 'err'; eok.id = 'e-ok';
-  steps[3].appendChild(eok);
-
-  function hash(s){ var h = 2166136261; for(var i = 0; i < s.length; i++){ h = Math.imul(h ^ s.charCodeAt(i), 16777619); } return h >>> 0; }
-  function fmt(h){ return (h % 12 || 12) + ':00 ' + (h < 12 ? 'AM' : 'PM'); }
-
-  function buildSlots(){
-    var box = $('#slots'); box.innerHTML = ''; slot = null;
-    var v = dateEl.value;
-    if(!v){ box.innerHTML = '<p class="hint" style="font-size:13px;color:#66707a">Choose a date to see times.</p>'; return; }
-    var p = v.split('-').map(Number), d = new Date(p[0], p[1]-1, p[2]), dow = d.getDay();
-    if(dow === 0){ box.innerHTML = '<p style="font-size:13px;color:#66707a">Closed on Sundays. Please choose another day.</p>'; return; }
-    var hours = dow === 6 ? [9,10,11,12] : [7,8,9,10,11,13,14,15,16,17,18];
-    var now = new Date(), today = v === iso(now), n = 0;
-    hours.forEach(function(h){
-      var b = document.createElement('button');
-      b.type = 'button'; b.className = 'slot'; b.textContent = fmt(h); b.dataset.h = h;
-      if(hash(v + h) % 5 === 0 || (today && h <= now.getHours())) b.disabled = true; else n++;
-      box.appendChild(b);
-    });
-    if(!n) box.innerHTML = '<p style="font-size:13px;color:#66707a">No openings that day. Try another date.</p>';
-  }
-
-  dateEl.addEventListener('change', buildSlots);
-  dateEl.addEventListener('input', buildSlots);
-
-  $('#slots').addEventListener('click', function(e){
-    var b = e.target.closest('.slot'); if(!b || b.disabled) return;
-    $$('.slot').forEach(function(x){ x.classList.remove('on'); });
-    b.classList.add('on'); slot = +b.dataset.h;
-  });
-
-  buildSlots();
-
-  function E(id, m){ var e = $('#e-' + id); if(e) e.textContent = m || ''; }
-  function chosen(){ return SV.filter(function(s){ return sel[s.id]; }); }
-
-  function valid(n){
-    ['svc','slot','name','ok'].forEach(function(k){ E(k, ''); });
-    var good = true;
-
-    if(n === 0 && !chosen().length){ E('svc', 'Select at least one module.'); good = false; }
-
-    if(n === 2){
-      var v = dateEl.value;
-      if(!v){ E('slot', 'Choose a date and time.'); good = false; }
-      else if(new Date(v + 'T00:00').getDay() === 0){ E('slot', 'We are closed on Sundays.'); good = false; }
-      else if(slot === null){ E('slot', 'Choose an available time.'); good = false; }
-    }
-
-    if(n === 3){
-      var nm = $('#fname').value.trim(), em = $('#email').value.trim();
-      if(nm.length < 2 || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)){
-        E('name', 'Enter your full name and a valid email.'); good = false;
-      }
-      if(!$('#ok').checked){ E('ok', 'Please confirm to continue.'); good = false; }
-    }
-
-    return good;
-  }
-
-  function when(){
-    var p = dateEl.value.split('-').map(Number), d = new Date(p[0], p[1]-1, p[2]);
-    return d.toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric', year:'numeric'}) + ' at ' + fmt(slot);
-  }
-
-  function row(k, v){
-    var d = document.createElement('div');
-    d.style.cssText = 'display:flex;justify-content:space-between;gap:20px;padding:12px 0;border-bottom:1px solid rgba(110,120,130,.28);font-size:13.5px;text-align:right';
-    var a = document.createElement('span'); a.className = 'micro'; a.textContent = k;
-    var b = document.createElement('span'); b.textContent = v;
-    d.appendChild(a); d.appendChild(b); return d;
-  }
-
-  function show(n){
-    step = n;
-    steps.forEach(function(s, i){ s.classList.toggle('on', i === n); });
-    next.textContent = n === 3 ? 'Confirm calibration' : 'Continue';
-    back.hidden = n === 0;
-    if(n === 3){
-      review.innerHTML = '';
-      review.appendChild(row('Modules', chosen().map(function(s){ return s.name; }).join(', ')));
-      review.appendChild(row('Age range', $('#age').value || 'Not provided'));
-      review.appendChild(row('When', when()));
-    }
-  }
-
-  back.addEventListener('click', function(){ if(step > 0) show(step - 1); });
-
-  document.addEventListener('keydown', function(e){
-    if(e.key === 'Escape' && step > 0 && bf.contains(document.activeElement) && !done.classList.contains('show')) show(step - 1);
-  });
-
-  bf.addEventListener('submit', function(e){
-    e.preventDefault();
-    if(!valid(step)) return;
-    if(step < 3){ show(step + 1); return; }
-
-    next.disabled = true;
-    next.textContent = 'Calibrating…';
-
-    setTimeout(function(){
-      var ref = 'AB-' + hash(dateEl.value + slot + $('#email').value).toString(36).toUpperCase().slice(0, 6);
-      bf.style.display = 'none';
-      done.innerHTML = '';
-
-      var h = document.createElement('h3');
-      h.textContent = 'Calibration booked';
-      h.style.cssText = 'font-weight:200;font-size:34px;text-transform:uppercase;margin-bottom:20px';
-
-      var p = document.createElement('p');
-      p.textContent = 'Thank you, ' + $('#fname').value.trim() + '. Reference ' + ref + '. A confirmation will be sent to ' + $('#email').value.trim() + '.';
-      p.style.cssText = 'font-size:14px;line-height:1.7;color:#3f474e;margin-bottom:20px';
-
-      var sm = document.createElement('div');
-      sm.style.cssText = 'text-align:left;border-top:1px solid rgba(110,120,130,.4)';
-      sm.appendChild(row('Modules', chosen().map(function(s){ return s.name; }).join(', ')));
-      sm.appendChild(row('When', when()));
-
-      var ics = document.createElement('button');
-      ics.type = 'button'; ics.className = 'submit'; ics.textContent = 'Add to calendar';
-      ics.style.marginTop = '26px';
-      ics.addEventListener('click', function(){
-        var p2 = dateEl.value.split('-').map(Number), s = new Date(p2[0], p2[1]-1, p2[2], slot, 0), en = new Date(s.getTime() + 3600000);
-        function f(d){ return d.getFullYear() + z(d.getMonth()+1) + z(d.getDate()) + 'T' + z(d.getHours()) + z(d.getMinutes()) + '00'; }
-        var txt = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//AURA BioLabs//EN','BEGIN:VEVENT','UID:' + ref + '@aura.example','DTSTAMP:' + new Date().toISOString().replace(/[-:]/g,'').split('.')[0] + 'Z','DTSTART:' + f(s),'DTEND:' + f(en),'SUMMARY:AURA BioLabs calibration','DESCRIPTION:Reference ' + ref,'END:VEVENT','END:VCALENDAR'].join('\r\n');
-        var a = document.createElement('a');
-        a.href = URL.createObjectURL(new Blob([txt], {type:'text/calendar'}));
-        a.download = 'aura-biolabs.ics';
-        document.body.appendChild(a); a.click(); a.remove();
-      });
-
-      var again = document.createElement('button');
-      again.type = 'button'; again.textContent = 'Start a new calibration';
-      again.style.cssText = 'background:none;border:0;margin-top:18px;font:600 10.5px Montserrat,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#66707a;cursor:pointer';
-      again.addEventListener('click', function(){
-        sel = {}; syncSel();
-        bf.reset(); dateEl.value = ''; buildSlots();
-        done.classList.remove('show');
-        bf.style.display = ''; next.disabled = false;
-        show(0);
-      });
-
-      [h, p, sm, ics, again].forEach(function(x){ done.appendChild(x); });
-      done.classList.add('show');
-    }, 800);
-  });
-
-  show(0);
-})();
-
-/* ============================================================
-   6. NAV, CLOCK
-   ============================================================ */
-(function(){
-  var clk = $('#clock');
-  if(clk){
-    try{
-      var f = new Intl.DateTimeFormat('en-US', {hour:'2-digit', minute:'2-digit', second:'2-digit', hourCycle:'h23', timeZone:'America/New_York'});
-      var up = function(){ clk.textContent = 'NYC ' + f.format(new Date()); };
-      up(); setInterval(up, 1000);
-    }catch(e){}
-  }
+  var el=document.getElementById('regional');if(!el)return;
+  var max=Math.max.apply(null,REGIONAL.map(function(r){return r.rate}));
+  el.innerHTML=REGIONAL.map(function(r){
+    var w=(r.rate/max)*100;
+    return '<tr><td class="loc">'+r.n+'<span class="sub">'+r.sub+'</span></td>'+
+      '<td class="bar-cell"><div class="rbar"><i style="width:'+w+'%"></i></div></td>'+
+      '<td class="rate-val">'+r.rate+'<span class="u">″/H</span></td>'+
+      '<td class="total">'+r.total+'″</td></tr>';
+  }).join('');
 })();
 })();
 </script>
