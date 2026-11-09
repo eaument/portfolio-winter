@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>SNOWFALL // Telemetry</title>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg: #e4e7eb;
@@ -14,8 +14,8 @@
   --line-heavy: rgba(10, 10, 10, 0.3);
   --cyan: #00a8ff;
   --cyan-dim: rgba(0, 168, 255, 0.15);
-  --warn: #ff3b30;
-  --yellow: #f2b632;
+  --warn: #d12828; 
+  --yellow: #b86a00; 
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
@@ -37,6 +37,14 @@ main, footer { position: relative; z-index: 2; }
 .micro { font-family: var(--mono); font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--mute); font-weight: 500; }
 .h2 { font-weight: 200; text-transform: uppercase; line-height: 1; font-size: clamp(28px, 4vw, 48px); letter-spacing: 0.15em; }
 
+/* Panel Labels */
+.label {
+  display: flex; align-items: baseline;
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.25em;
+  color: var(--mute); text-transform: uppercase;
+  margin-bottom: 24px; border-bottom: 1px solid var(--line); padding-bottom: 12px;
+}
+
 /* Background */
 .bg-layer { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: var(--bg); overflow: hidden; contain: paint; }
 #tris-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
@@ -46,17 +54,6 @@ main, footer { position: relative; z-index: 2; }
 @keyframes sweep { 0% { transform: translateX(-60%); } 100% { transform: translateX(60%); } }
 .vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 30%, rgba(180, 190, 200, 0.4) 100%); pointer-events: none; }
 .is-scrolling .tri, .is-scrolling .sweep { animation-play-state: paused; }
-
-/* DBH Glitch */
-@keyframes dbhGlitch {
-  0%, 100% { opacity: 1; transform: none; }
-  5% { opacity: 0.8; transform: translateX(1px); }
-  6% { opacity: 1; transform: none; }
-  50% { opacity: 1; transform: none; }
-  52% { opacity: 0.6; transform: translateX(-1px); }
-  53% { opacity: 1; transform: none; }
-}
-.glitch:hover { animation: dbhGlitch 0.4s linear; color: var(--cyan); }
 
 /* Loading State */
 .data-container { transition: opacity 0.3s ease, filter 0.3s ease; }
@@ -145,9 +142,9 @@ body.is-loading .hero-loc .city { color: var(--cyan); }
   100% { transform: translateX(-50%); }
 }
 .ticker-item { margin-right: 40px; color: var(--mute); }
-.ticker-item.alert { color: var(--warn); font-weight: 600; }
-.ticker-item.warn { color: var(--yellow); font-weight: 600; }
-.ticker-item.ok { color: var(--cyan); font-weight: 600; }
+.ticker-item.alert { color: var(--warn); font-weight: 700; }
+.ticker-item.warn { color: var(--yellow); font-weight: 700; }
+.ticker-item.ok { color: var(--cyan); font-weight: 700; }
 
 .hero-main { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: stretch; }
 .hero-left { display: flex; flex-direction: column; gap: 24px; }
@@ -158,13 +155,21 @@ body.is-loading .hero-loc .city { color: var(--cyan); }
 .rate-unit span:first-child { color: var(--ink); font-weight: 500; }
 
 /* Highlighting condition rows */
-.rows div { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--line); font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; transition: all 0.3s; }
+.rows div { 
+  display: flex; justify-content: space-between; padding: 14px 0 14px 0; 
+  border-bottom: 1px solid var(--line); font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; 
+  transition: all 0.3s; position: relative;
+}
 .rows div:last-child { border-bottom: none; }
 .rows span:last-child { font-family: var(--mono); font-size: 14px; font-weight: 500; transition: color 0.3s; }
-.rows div.highlight-warn { background: rgba(255,59,48,0.05); }
-.rows div.highlight-warn span:last-child { color: var(--warn); font-weight: 600; }
-.rows div.highlight-yellow { background: rgba(242,182,50,0.05); }
-.rows div.highlight-yellow span:last-child { color: var(--yellow); font-weight: 600; }
+
+.rows div.highlight-warn { padding-left: 12px; }
+.rows div.highlight-warn::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--warn); }
+.rows div.highlight-warn span:last-child { color: var(--warn); font-weight: 700; }
+
+.rows div.highlight-yellow { padding-left: 12px; }
+.rows div.highlight-yellow::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--yellow); }
+.rows div.highlight-yellow span:last-child { color: var(--yellow); font-weight: 700; }
 
 .prob { margin-bottom: 20px; }
 .prob .top { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.1em; }
@@ -216,7 +221,7 @@ body.is-loading .hero-loc .city { color: var(--cyan); }
 .hour .amt { font-weight: 300; font-size: 22px; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
 .hour .amt small { font-size: 0.6em; color: var(--mute); font-weight: 300; margin-left: 3px; }
 .hour .intensity { font-family: var(--mono); font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--mute); margin-top: 4px; }
-.hour .intensity.hv { color: var(--warn); font-weight: 600; }
+.hour .intensity.hv { color: var(--warn); font-weight: 700; }
 .hour.now .t { color: var(--cyan); font-weight: 600; }
 .hour.now .node { border-color: var(--cyan); background: var(--cyan); box-shadow: 0 0 12px var(--cyan); }
 .hour.now .i, .hour.now .amt, .hour.now .intensity { color: var(--cyan); }
@@ -243,72 +248,96 @@ canvas#hist { width: 100%; height: 220px; display: block; }
 footer { margin-top: 120px; border-top: 1px solid var(--line-heavy); padding: 40px 0 calc(40px + env(safe-area-inset-bottom, 0px)); font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--mute); }
 .foot { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
 
-/* DBH Boot Screen */
+/* ---------- WHITE DBH BOOT SCREEN ---------- */
 #boot {
   position: fixed; inset: 0; z-index: 200;
-  background: #ffffff;
+  background: #ffffff; /* Pure white */
   display: flex; align-items: center; justify-content: center; flex-direction: column;
   transition: opacity 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 #boot.hidden { opacity: 0; pointer-events: none; }
 
-.boot-mark {
-  position: relative;
-  width: 140px; height: 121px;
-  margin-bottom: 48px;
-  transform: scale(0);
-  animation: flashCut 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-}
-@keyframes flashCut {
-  0% { transform: scale(0); opacity: 0; }
-  50% { transform: scale(1.1); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
+.boot-content {
+  position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; text-align: center;
+  max-width: 500px;
+  width: 100%;
+  padding: 0 20px;
 }
 
-.boot-mark svg { width: 100%; height: 100%; overflow: visible; }
+/* Segmented Spinner */
+.boot-spinner {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 40px;
+  animation: spin 1.5s linear infinite;
+}
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+.boot-spinner svg {
+  width: 100%; height: 100%;
+}
 
+/* Title */
+.boot-title {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  font-size: 24px;
+  color: #0a0a0a;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.boot-subtitle {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: #6a7580;
+  text-transform: uppercase;
+  margin-bottom: 40px;
+}
+
+/* Progress Bar */
 .boot-bar-wrap {
-  width: 260px; height: 1px;
-  background: rgba(0,0,0,0.08);
+  width: 100%;
+  height: 2px;
+  background: rgba(0, 0, 0, 0.05);
   position: relative;
   overflow: hidden;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 .boot-bar {
   position: absolute; inset: 0 auto 0 0;
   width: 0;
-  background: #0a0a0a;
-  transition: width 2s cubic-bezier(0.8, 0, 0.2, 1);
+  background: #0a0a0a; /* Dark fill */
+  transition: width 2.5s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.boot-text {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.4em;
-  text-transform: uppercase;
-  color: #0a0a0a;
-  margin-bottom: 12px;
-}
-.boot-sub {
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  color: #8a96a3;
-}
-.boot-press {
-  margin-top: 64px;
+/* Details */
+.boot-details {
+  display: flex; justify-content: space-between; width: 100%;
   font-family: var(--mono);
   font-size: 10px;
-  letter-spacing: 0.3em;
+  color: #8a96a3;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Press Any Key */
+.boot-press {
+  margin-top: 50px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.25em;
   text-transform: uppercase;
   color: #0a0a0a;
   animation: pressPulse 2s infinite;
   cursor: pointer;
   display: none;
+  opacity: 0;
 }
-@keyframes pressPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+@keyframes pressPulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
 
 /* UI Reveal Animations */
 .reveal {
@@ -343,27 +372,37 @@ body.loaded .reveal {
   .hud-panel { padding: 24px 20px; }
   .rate { font-size: clamp(48px, 14vw, 80px); }
   .rate-unit { margin-left: 8px; font-size: 0.35em; }
-  .boot-mark { width: 100px; height: 86px; margin-bottom: 32px; }
-  .boot-bar-wrap { width: 200px; }
-  .boot-text { font-size: 10px; letter-spacing: 0.3em; }
 }
 </style>
 </head>
 <body>
 
-<!-- DBH Boot Screen -->
+<!-- WHITE DBH BOOT SCREEN -->
 <div id="boot">
-  <div class="boot-mark">
-    <svg viewBox="0 0 140 121" fill="none">
-      <polygon points="70,4 136,116 4,116" stroke="#0a0a0a" stroke-width="3" stroke-linejoin="miter"/>
-      <polygon points="70,24 118,106 22,106" stroke="#ffffff" stroke-width="6" stroke-linejoin="miter"/>
-      <polygon points="70,24 118,106 22,106" stroke="#00a8ff" stroke-width="0.8" stroke-linejoin="miter" opacity="0.8"/>
-    </svg>
+  <div class="boot-content">
+    <!-- Segmented Spinner -->
+    <div class="boot-spinner">
+      <svg viewBox="0 0 100 100" fill="none">
+        <!-- Outer track (faint) -->
+        <circle cx="50" cy="50" r="40" stroke="#e4e7eb" stroke-width="4" />
+        <!-- Segments (blue) -->
+        <path d="M50 10 A40 40 0 0 1 90 50" stroke="#00a8ff" stroke-width="4" stroke-linecap="round" />
+        <path d="M50 90 A40 40 0 0 1 10 50" stroke="#00a8ff" stroke-width="4" stroke-linecap="round" />
+      </svg>
+    </div>
+
+    <div class="boot-title">SNOWFALL</div>
+    <div class="boot-subtitle">TELEMETRY SYSTEM</div>
+
+    <div class="boot-bar-wrap"><div class="boot-bar" id="bootBar"></div></div>
+    
+    <div class="boot-details">
+      <span>INITIALIZING</span>
+      <span id="bootPct">0%</span>
+    </div>
+
+    <div class="boot-press" id="bootPress">PRESS ANY KEY TO CONTINUE</div>
   </div>
-  <div class="boot-text">SNOWFALL</div>
-  <div class="boot-bar-wrap"><div class="boot-bar" id="bootBar"></div></div>
-  <div class="boot-sub" id="bootSub">INITIALIZING</div>
-  <div class="boot-press" id="bootPress">PRESS ANY KEY</div>
 </div>
 
 <div class="bg-layer" aria-hidden="true">
@@ -387,7 +426,6 @@ body.loaded .reveal {
         <button class="search-btn" id="scanBtn">SCAN</button>
       </div>
 
-      <!-- DBH Scrolling Ticker -->
       <div class="ticker-wrap reveal delay-2">
         <div class="ticker-content" id="tickerText">SYS.READY // AWAITING TELEMETRY STREAM</div>
       </div>
@@ -407,7 +445,7 @@ body.loaded .reveal {
           <div class="hero-left reveal delay-4">
             <div>
               <div class="rate-label">Snow depth</div>
-              <div class="rate glitch">
+              <div class="rate">
                 <span id="depth">0.0</span>
                 <span class="rate-unit">
                   <span>IN</span>
@@ -489,12 +527,12 @@ body.loaded .reveal {
 
     <div class="wrap grid g2 reveal delay-5" style="display:grid; grid-template-columns: 1.4fr 1fr; gap:24px; margin-bottom:120px;">
       <section class="hud-panel" style="margin-bottom:0;">
-        <div class="label"><span>Historical analysis // season to date</span><span class="num">02</span></div>
+        <div class="label"><span>Historical analysis // season to date</span></div>
         <canvas id="hist"></canvas>
         <div class="micro" id="histNote" style="margin-top:16px;">—</div>
       </section>
       <section class="hud-panel" style="margin-bottom:0;">
-        <div class="label"><span>Surrounding area // 25 mi</span><span class="num">03</span></div>
+        <div class="label"><span>Surrounding area // 25 mi</span></div>
         <table class="regional-table">
           <thead>
             <tr><th>Location</th><th class="bar-cell"></th><th class="num">Rate</th><th class="num">24H</th></tr>
@@ -515,61 +553,93 @@ body.loaded .reveal {
 </footer>
 
 <script>
+if ('scrollRestoration' in history) {
+  history.scrollRestoration = 'manual';
+}
+
 const $ = s => document.querySelector(s);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const cmToIn = v => (v || 0) / 2.54;
 const sum = (arr, a, b) => arr.slice(Math.max(0, a), b + 1).reduce((s, v) => s + (v || 0), 0);
 const iso = d => d.toISOString().slice(0, 10);
 
-// Global state
 let currentSeasons = [];
 let initialData = null; 
 
-/* ---------- Boot Sequence ---------- */
 let bootDone = false;
 const bootBar = $('#bootBar');
-const bootSub = $('#bootSub');
+const bootPct = $('#bootPct');
 const bootPress = $('#bootPress');
+
+// Lock body scroll physically
+document.body.style.overflow = 'hidden';
+document.documentElement.style.overflow = 'hidden';
 
 let saved = 'Bozeman';
 try { saved = localStorage.getItem('ws-last') || 'Bozeman'; } catch(e) {}
 initialData = fetchData(saved); 
 
 function startBoot() {
-  bootBar.style.width = '100%';
-  setTimeout(() => {
-    bootSub.textContent = 'READY';
-    bootPress.style.display = 'block';
-  }, 2000);
+  // Animate the progress bar from 0 to 100 over 3 seconds
+  let progress = 0;
+  const interval = setInterval(() => {
+    progress += Math.random() * 5 + 2;
+    if (progress > 100) progress = 100;
+    bootBar.style.width = progress + '%';
+    bootPct.textContent = Math.round(progress) + '%';
+    
+    if (progress >= 100) {
+      clearInterval(interval);
+      bootPress.style.display = 'block';
+      bootPress.style.opacity = '1';
+    }
+  }, 80);
 }
 
-async function finishBoot() {
+function finishBoot() {
   if (bootDone) return;
   bootDone = true;
   
-  bootPress.style.display = 'none';
-  bootSub.textContent = 'LOADING'; 
-  
-  try {
-    const data = await initialData;
-    render(data.loc, data.f, data.hist, data.area);
-  } catch (e) {
-    console.error("Initial fetch failed", e);
-  }
-  
+  // 1. Hide the boot screen
   $('#boot').classList.add('hidden');
+  
+  // 2. Enable scrolling completely
+  document.body.style.overflow = '';
+  document.documentElement.style.overflow = '';
   document.body.classList.add('loaded');
   
-  setTimeout(() => { $('#boot').style.display = 'none'; }, 600);
+  // 3. Hard scroll to top AFTER unlocking overflow
+  window.scrollTo(0, 0);
+  setTimeout(() => window.scrollTo(0, 0), 10);
+  setTimeout(() => window.scrollTo(0, 0), 100);
+
+  // 4. Fade out the boot screen from DOM
+  setTimeout(() => { 
+    $('#boot').style.display = 'none'; 
+  }, 600);
+
+  // 5. Handle data loading state
+  document.body.classList.add('is-loading');
+  $('#locName').textContent = 'FETCHING TELEMETRY...';
+
+  // 6. Resolve and render
+  initialData.then(data => {
+    render(data.loc, data.f, data.hist, data.area);
+    document.body.classList.remove('is-loading');
+  }).catch(e => {
+    console.error("Initial fetch failed", e);
+    $('#locName').textContent = 'CONNECTION FAILED';
+    $('#tickerText').innerHTML = '<span class="ticker-item alert">CONNECTION FAILED // RETRY QUERY</span>';
+    document.body.classList.remove('is-loading');
+  });
 }
 
 bootPress.addEventListener('click', finishBoot);
 document.addEventListener('keydown', finishBoot);
 document.addEventListener('touchstart', finishBoot);
 
-setTimeout(startBoot, 300);
+setTimeout(startBoot, 500);
 
-/* ---------- Data Fetching ---------- */
 async function geocode(name) {
   const r = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=1&language=en&format=json`);
   if (!r.ok) throw new Error('GEOCODE FAILED');
@@ -640,7 +710,6 @@ function hourIndex(d) {
   return i >= 0 ? i : 24 * 2 + new Date().getHours();
 }
 
-/* ---------- Analysis ---------- */
 function riskLevel({ temp, chill, wind, rate, depth }) {
   let s = 0;
   let factors = {
@@ -667,7 +736,6 @@ function probability(total, threshold, precipMax) {
   return Math.round(100 * (total >= threshold ? Math.max(p, 0.6) : p * ratio * ratio));
 }
 
-/* ---------- Render ---------- */
 function countUp(el, to, dec = 1) {
   const start = performance.now(), dur = 900;
   const step = now => {
@@ -682,9 +750,9 @@ function renderChart(hourly, idx) {
   const vals = [];
   for (let i = idx - 12; i <= idx + 12; i++) vals.push(cmToIn(hourly.snowfall[i]));
   
-  const max = Math.max(...vals, 0.2);
+  const max = Math.max(...vals, 1.0); 
   
-  if (max <= 0.2) {
+  if (max <= 0.2 && Math.max(...vals) <= 0.2) {
     $('#empty-chart').style.display = 'flex';
     $('#chart-line-path').setAttribute('d', '');
     $('#chart-fill-path').setAttribute('d', '');
@@ -716,17 +784,17 @@ function renderChart(hourly, idx) {
 function renderTimeline(hourly, idx) {
   const box = $('#hourly'); box.innerHTML = '';
   const vals = [];
-  for (let i = idx - 6; i <= idx + 5; i++) vals.push(cmToIn(hourly.snowfall[i]));
+  for (let i = idx; i <= idx + 11; i++) vals.push(cmToIn(hourly.snowfall[i]));
   
   vals.forEach((v, n) => {
-    const off = n - 6;
+    const off = n;
     
     let iconSvg = '';
     if (v > 0.3) iconSvg = '<svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="1.4" fill="none"><line x1="12" y1="2" x2="12" y2="22"/><line x1="3.5" y1="7" x2="20.5" y2="17"/><line x1="3.5" y1="17" x2="20.5" y2="7"/></svg>';
     else if (v > 0) iconSvg = '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M18 9h-1.26A8 8 0 1 0 9 19h9a5 5 0 0 0 0-10z" opacity="0.7"/><circle cx="8" cy="21" r="0.9"/><circle cx="12" cy="22" r="0.9"/><circle cx="16" cy="21" r="0.9"/></svg>';
     else iconSvg = '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>';
 
-    const tLab = off === 0 ? 'NOW' : (off > 0 ? '+' : '') + off + 'H';
+    const tLab = off === 0 ? 'NOW' : '+' + off + 'H';
     const intensityClass = v > 0.3 ? 'hv' : v > 0 ? 'md' : 'lt';
     const intensityText = v > 0.3 ? 'HEAVY' : v > 0 ? 'MOD' : 'LIGHT';
 
@@ -774,16 +842,15 @@ function renderHistory(seasons) {
     ctx.fillText(s.label, x + bw * 0.35, h - 10);
   });
   const ay = h - 30 - (avg / max) * (h - 60);
-  ctx.strokeStyle = '#ff3b30'; ctx.setLineDash([4, 4]); ctx.beginPath();
+  ctx.strokeStyle = '#d12828'; ctx.setLineDash([4, 4]); ctx.beginPath();
   ctx.moveTo(pad, ay); ctx.lineTo(w - pad, ay); ctx.stroke(); ctx.setLineDash([]);
-  ctx.fillStyle = '#ff3b30'; ctx.textAlign = 'left'; ctx.fillText(`AVG ${avg.toFixed(1)}`, pad, ay - 6);
+  ctx.fillStyle = '#d12828'; ctx.textAlign = 'left'; ctx.fillText(`AVG ${avg.toFixed(1)}`, pad, ay - 6);
 
   const cur = seasons[seasons.length - 1].value;
   const diff = avg ? Math.round(((cur - avg) / avg) * 100) : 0;
   $('#histNote').textContent = `CURRENT SEASON ${diff >= 0 ? '+' : ''}${diff}% VS 5-SEASON AVERAGE`;
 }
 
-/* ---------- Manual Scan Sequence ---------- */
 async function manualScan(query) {
   const btn = $('#scanBtn');
   const input = $('#city');
@@ -843,10 +910,8 @@ function render(loc, f, hist, area) {
     </tr>
   `).join('');
 
-  // --- Risk Analysis & Highlighting ---
   const risk = riskLevel({ temp: c.temperature_2m, chill: c.apparent_temperature, wind: c.wind_speed_10m, rate, depth });
   
-  // Update Ticker
   let tickerClass = 'ok';
   if (risk.level === 'MODERATE') tickerClass = 'warn';
   if (risk.level === 'SEVERE') tickerClass = 'alert';
@@ -859,10 +924,9 @@ function render(loc, f, hist, area) {
     <span class="ticker-item">ACCUMULATION: ${depth.toFixed(1)} IN</span>
     <span class="ticker-item">///</span>
   `;
-  // Duplicate the string to create a seamless loop
-  $('#tickerText').innerHTML = tickerStr + tickerStr + tickerStr;
+  
+  $('#tickerText').innerHTML = tickerStr + tickerStr;
 
-  // Highlight Rows in the UI
   document.querySelectorAll('.rows div').forEach(r => r.className = '');
   if (risk.factors.rate || risk.factors.heavy) $('#row-rate').className = 'highlight-' + risk.color;
   if (risk.factors.temp) $('#row-temp').className = 'highlight-' + risk.color;
@@ -890,7 +954,6 @@ window.addEventListener('resize', () => {
   if (currentSeasons.length > 0) renderHistory(currentSeasons);
 });
 
-/* ---------- Background & Init ---------- */
 (function(){
   var TONES=[['#bcc5cd','#a0abb5'],['#a3aeb8','#8996a1'],['#9ba6b1','#8794a1']];
   function defs(){
