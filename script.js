@@ -1798,7 +1798,7 @@ function buildTriangleBackground() {
     defs += '</defs>';
 
     for (let row = -1; row <= rows; row++) {
-      for (let col = -2; col <= cols; col++) {
+      for (let col = -2; col <= columns; col++) {
         const left = col * (triangleWidth / 2);
         const top = row * triangleHeight;
         const isPointingUp = (col + row) % 2 === 0;
