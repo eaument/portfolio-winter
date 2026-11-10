@@ -1320,17 +1320,16 @@ const events = {
   },
 
   _location() {
-    dom.locationBtn.addEventListener('click', actions.useLocation);
-  },
+  dom.locationBtn.addEventListener('click', () => actions.useLocation());
+},
 
-  _brand() {
-    dom.brandBtn.addEventListener('click', actions.goHome);
-  },
+_brand() {
+  dom.brandBtn.addEventListener('click', () => actions.goHome());
+},
 
-  _backButton() {
-    dom.backToLocationBtn.addEventListener('click', actions.returnToParent);
-  },
-
+_backButton() {
+  dom.backToLocationBtn.addEventListener('click', () => actions.returnToParent());
+},
   _presets() {
     document.querySelectorAll('.preset').forEach((btn) => {
       btn.addEventListener('click', () => {
