@@ -534,6 +534,7 @@ const render = {
 
   /** Master entry point — turns a weather data object into the on-screen UI. */
   report(data) {
+     dom.cityInput.value = '';
     const currentHourIndex = findCurrentHourIndex(data.forecast);
     const { hourly, current } = data.forecast;
 
