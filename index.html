@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>SNOWFALL — Live Snow Report</title>
+<title>POWDER — Live Snow Report</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -38,7 +38,7 @@ main, footer { position: relative; z-index: 2; }
 .micro { font-family: var(--mono); font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--mute); font-weight: 500; }
 .h2 { font-weight: 200; text-transform: uppercase; line-height: 1; font-size: clamp(28px, 4vw, 48px); letter-spacing: 0.15em; }
 
-/* ── Animated triangle background — UNCHANGED from original ── */
+/* Animated triangle background — untouched */
 .bg-layer { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: var(--bg); overflow: hidden; contain: paint; }
 #tris-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 @keyframes layerCycle { 0%, 40% { opacity: 1; } 60%, 90% { opacity: 0; } 100% { opacity: 1; } }
@@ -46,7 +46,7 @@ main, footer { position: relative; z-index: 2; }
 .vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 30%, rgba(180, 190, 200, 0.4) 100%); pointer-events: none; }
 .is-scrolling .tri { animation-play-state: paused; }
 
-/* ── Loading shimmer ────────────────────────────── */
+/* Loading shimmer */
 .data-container { transition: opacity 0.3s ease; }
 @keyframes loading-pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.55; } }
 body.is-loading .data-container {
@@ -55,7 +55,7 @@ body.is-loading .data-container {
   filter: blur(0.5px);
 }
 
-/* Empty state — placeholder values are dimmed */
+/* Empty state */
 .data-container.empty .rate > span:first-child,
 .data-container.empty .condition-rows .row-value,
 .data-container.empty .bar-chart-hero,
@@ -93,7 +93,7 @@ body.is-loading .data-container {
 }
 .top-search {
   display: flex; align-items: center; gap: 8px;
-  flex: 1; min-width: 220px; max-width: 460px;
+  flex: 1; min-width: 200px; max-width: 460px;
 }
 .top-search-input {
   flex: 1;
@@ -104,6 +104,7 @@ body.is-loading .data-container {
   letter-spacing: 0.1em; outline: none;
   text-transform: uppercase;
   transition: border-color 0.2s;
+  min-width: 0;
 }
 .top-search-input::placeholder { color: var(--mute); }
 .top-search-input:focus { border-bottom-color: var(--cyan); }
@@ -142,6 +143,7 @@ body.is-loading .data-container {
   border-radius: 2px;
   color: var(--mute);
   transition: all 0.3s;
+  white-space: nowrap;
 }
 .live-badge .live-dot {
   width: 6px; height: 6px; border-radius: 50%;
@@ -182,8 +184,8 @@ body.is-loading .data-container {
 
 /* ── Hero ────────────────────────────────────────── */
 .hero { padding: calc(100px + env(safe-area-inset-top, 0px)) 0 60px; }
-@media (max-width: 768px) { .hero { padding-top: calc(180px + env(safe-area-inset-top, 0px)); } }
 
+/* Ticker */
 .ticker-wrap {
   overflow: hidden; white-space: nowrap;
   border-top: 1px solid var(--line-heavy);
@@ -192,11 +194,13 @@ body.is-loading .data-container {
   margin-bottom: 32px;
   background: rgba(255, 255, 255, 0.4);
   backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  position: relative;
 }
 .ticker-content {
   display: inline-block; font-family: var(--mono); font-size: 11px;
   letter-spacing: 0.2em; text-transform: uppercase;
   animation: ticker 45s linear infinite;
+  will-change: transform;
 }
 @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 .ticker-item { margin-right: 48px; color: var(--mute); }
@@ -206,11 +210,38 @@ body.is-loading .data-container {
 .ticker-item.friendly { color: var(--ink); font-weight: 500; }
 
 .hero-header {
-  display: flex; justify-content: space-between; align-items: flex-end;
+  display: flex; justify-content: space-between; align-items: flex-start;
   gap: 24px; flex-wrap: wrap;
   margin-bottom: 24px;
 }
 .hero-loc { display: flex; flex-direction: column; gap: 6px; }
+
+/* Back-to-original-location chip */
+.back-to-location {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+  padding: 6px 12px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 2px;
+  align-self: flex-start;
+  margin-top: 4px;
+  transition: background 0.2s;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.back-to-location:hover { background: var(--cyan-dim); }
+.back-to-location.visible { display: inline-flex; }
+
 .hero-loc .city { font-weight: 200; font-size: 24px; letter-spacing: 0.15em; text-transform: uppercase; transition: color 0.3s; }
 body.is-loading .hero-loc .city { color: var(--cyan); }
 .hero-loc .date { font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--mute); }
@@ -263,16 +294,16 @@ body.is-loading .hero-loc .city { color: var(--cyan); }
 .rate-label::after { content: ""; flex: 1; height: 1px; background: var(--cyan); opacity: 0.3; }
 .rate {
   font-weight: 200;
-  font-size: clamp(72px, 9vw, 128px);
-  line-height: 0.8;
+  font-size: clamp(44px, 6vw, 80px);
+  line-height: 0.85;
   letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums;
   display: flex; align-items: baseline;
 }
 .rate-unit {
-  font-size: 0.2em; font-weight: 400; letter-spacing: 0.15em;
+  font-size: 0.28em; font-weight: 400; letter-spacing: 0.15em;
   text-transform: uppercase; color: var(--mute);
-  margin-left: 14px; line-height: 1.2;
+  margin-left: 12px; line-height: 1.2;
   display: flex; flex-direction: column;
 }
 .rate-unit span:first-child { color: var(--ink); font-weight: 500; }
@@ -280,7 +311,7 @@ body.is-loading .hero-loc .city { color: var(--cyan); }
 .condition-rows {
   display: flex; flex-direction: column; gap: 0;
   border-top: 1px solid var(--line);
-  margin-top: 24px;
+  margin-top: 20px;
 }
 .condition-rows .row {
   display: flex; justify-content: space-between; align-items: baseline;
@@ -305,7 +336,7 @@ body.is-loading .hero-loc .city { color: var(--cyan); }
 .condition-rows .row.highlight-moderate::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--yellow); }
 .condition-rows .row.highlight-moderate .row-value { color: var(--yellow); font-weight: 700; }
 
-.chance-section { margin-top: 28px; }
+.chance-section { margin-top: 24px; }
 .chance-section .chance-label {
   font-family: var(--mono); font-size: 10px; letter-spacing: 0.25em;
   text-transform: uppercase; color: var(--cyan); margin-bottom: 14px;
@@ -319,7 +350,7 @@ body.is-loading .hero-loc .city { color: var(--cyan); }
 .prob .bar { height: 2px; background: var(--line-heavy); position: relative; overflow: hidden; }
 .prob .bar i { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--cyan); transition: width 1.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
 
-/* ── Hero bar chart panel ─────────────────────────── */
+/* HUD panels */
 .hud-panel {
   position: relative; padding: 32px; background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.5);
@@ -329,7 +360,7 @@ body.is-loading .hero-loc .city { color: var(--cyan); }
 .hud-panel::after { content: ""; position: absolute; top: 0; right: 0; width: 2px; height: 32px; background: var(--cyan); }
 
 .chart-panel { position: relative; overflow: visible; display: flex; flex-direction: column; }
-.chart-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 28px; flex-wrap: wrap; gap: 12px; }
+.chart-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
 .chart-head .title { font-family: var(--mono); font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--ink); font-weight: 600; }
 .chart-head .legend { display: flex; gap: 16px; font-family: var(--mono); font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mute); }
 .chart-head .legend span { display: inline-flex; align-items: center; gap: 6px; }
@@ -378,7 +409,7 @@ body.is-loading .hero-loc .city { color: var(--cyan); }
 }
 .bar-chart-axis span:nth-child(3) { color: var(--cyan); font-weight: 600; }
 
-/* ── Sections ───────────────────────────────────── */
+/* Sections */
 section.sec { padding: 0 0 100px; }
 .sec-head {
   display: flex; justify-content: space-between; align-items: flex-end;
@@ -389,7 +420,7 @@ section.sec { padding: 0 0 100px; }
 }
 .sec-head .micro { display: block; margin-bottom: 10px; color: var(--cyan); }
 
-/* ── Hourly timeline ───────────────────────────── */
+/* Hourly timeline */
 .timeline-scroll { overflow-x: auto; padding-bottom: 8px; -webkit-overflow-scrolling: touch; }
 .timeline-inner { position: relative; min-width: 100%; }
 @media (max-width: 900px) { .timeline-inner { min-width: 900px; } }
@@ -447,7 +478,7 @@ section.sec { padding: 0 0 100px; }
 .peak-sev.severity-low { color: var(--cyan); }
 .peak-sev.severity-none { color: var(--mute); }
 
-/* ── Stats grid ─────────────────────────────────── */
+/* Stats grid — Next 24H now same size as peers */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -468,14 +499,13 @@ section.sec { padding: 0 0 100px; }
   line-height: 1; font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
   display: flex; align-items: baseline;
+  color: var(--ink);
 }
 .stat-v small { font-size: 0.35em; color: var(--mute); font-weight: 400; margin-left: 6px; letter-spacing: 0.1em; }
-.stat-cell-hero .stat-v {
-  font-size: clamp(40px, 5.5vw, 72px);
-  color: var(--cyan);
-}
+/* Only color by severity — no more persistent cyan on the hero cell */
 .stat-cell-hero .stat-v.severity-severe { color: var(--warn); }
 .stat-cell-hero .stat-v.severity-moderate { color: var(--yellow); }
+.stat-cell-hero .stat-v.severity-low { color: var(--cyan); }
 .stat-sev {
   margin-top: 12px;
   font-family: var(--mono); font-size: 9px; letter-spacing: 0.2em;
@@ -489,7 +519,7 @@ section.sec { padding: 0 0 100px; }
 .stat-sev.severity-low { color: var(--cyan); }
 .stat-sev.severity-none { color: var(--mute); }
 
-/* ── Nearby cards ───────────────────────────────── */
+/* Nearby cards */
 .nearby-cards {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -566,7 +596,7 @@ section.sec { padding: 0 0 100px; }
 }
 .nearby-card:hover .nearby-arrow { opacity: 1; transform: translateX(4px); }
 
-/* ── Season panel ───────────────────────────────── */
+/* Season panel */
 .season-panel {
   display: grid; grid-template-columns: minmax(220px, 300px) 1fr;
   gap: 48px; padding: 44px;
@@ -591,16 +621,17 @@ section.sec { padding: 0 0 100px; }
 .season-chart-wrap { position: relative; height: 260px; }
 .season-chart-wrap canvas { width: 100%; height: 100%; display: block; cursor: crosshair; }
 
-/* ── Footer ─────────────────────────────────────── */
+/* Footer — tightened */
 footer {
-  margin-top: 80px; border-top: 1px solid var(--line-heavy);
-  padding: 40px 0 calc(40px + env(safe-area-inset-bottom, 0px));
+  margin-top: 40px;
+  border-top: 1px solid var(--line-heavy);
+  padding: 32px 0 calc(32px + env(safe-area-inset-bottom, 0px));
   font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em;
   text-transform: uppercase; color: var(--mute);
 }
 .foot { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
 
-/* ── Boot screen ────────────────────────────────── */
+/* Boot screen */
 #boot {
   position: fixed; inset: 0; z-index: 200; background: #ffffff;
   display: flex; align-items: center; justify-content: center;
@@ -616,7 +647,7 @@ footer {
 .boot-bar { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--cyan); transition: width 0.3s ease; }
 .boot-status { font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; color: var(--mute); text-transform: uppercase; min-height: 14px; }
 
-/* ── Reveal animations ──────────────────────────── */
+/* Reveal animations */
 .reveal { opacity: 0; transform: translateY(12px); transition: opacity 0.8s cubic-bezier(0.2, 0.7, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1); }
 body.loaded .reveal { opacity: 1; transform: translateY(0); }
 .delay-1 { transition-delay: 0.1s; }
@@ -625,7 +656,7 @@ body.loaded .reveal { opacity: 1; transform: translateY(0); }
 .delay-4 { transition-delay: 0.4s; }
 .delay-5 { transition-delay: 0.5s; }
 
-/* ── Global tooltip ─────────────────────────────── */
+/* Global tooltip */
 .global-tooltip {
   position: fixed; z-index: 9999; top: 0; left: 0;
   background: var(--navy); color: var(--bg);
@@ -648,7 +679,7 @@ body.loaded .reveal { opacity: 1; transform: translateY(0); }
 .global-tooltip .tt-row span:first-child { color: rgba(228, 231, 235, 0.55); }
 .global-tooltip .tt-row span:last-child { color: #fff; font-weight: 500; }
 
-/* ── Error banner ───────────────────────────────── */
+/* Error banner */
 .error-banner {
   position: fixed;
   top: 84px; left: 50%;
@@ -669,7 +700,24 @@ body.loaded .reveal { opacity: 1; transform: translateY(0); }
   transform: translateX(-50%) translateY(0);
 }
 
-/* ── Responsive ─────────────────────────────────── */
+/* ═══ RESPONSIVE — smoothed across all widths ═══ */
+@media (max-width: 1400px) {
+  .wrap { padding: 0 4vw; }
+  .hero-main { gap: 40px; }
+}
+
+@media (max-width: 1200px) {
+  .top-search { max-width: 360px; }
+  .bar-chart-hero { height: 180px; }
+}
+
+@media (max-width: 1100px) {
+  .top-bar { gap: 12px; }
+  .top-search { max-width: 300px; }
+  .hero-main { gap: 32px; }
+  .season-chart-wrap { height: 240px; }
+}
+
 @media (max-width: 1024px) {
   .hero-main { grid-template-columns: 1fr; gap: 40px; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 32px 24px; }
@@ -678,27 +726,39 @@ body.loaded .reveal { opacity: 1; transform: translateY(0); }
   .season-stat { padding-right: 0; padding-bottom: 32px; border-right: 0; border-bottom: 1px solid var(--line); }
   .nearby-cards { grid-template-columns: repeat(2, 1fr); }
 }
-@media (max-width: 768px) {
-  .top-bar { gap: 12px; padding: 12px max(4vw, 16px); padding-top: calc(12px + env(safe-area-inset-top, 0px)); }
-  .brand { font-size: 12px; }
-  .top-search { order: 3; flex-basis: 100%; max-width: none; }
-  .top-actions { order: 2; margin-left: auto; }
+
+@media (max-width: 900px) {
   .updated-at { display: none; }
-  .hero { padding-top: calc(180px + env(safe-area-inset-top, 0px)); }
-  .error-banner { top: 140px; }
+  .bar-chart-hero { height: 160px; }
+  .season-chart-wrap { height: 220px; }
 }
+
+@media (max-width: 768px) {
+  .top-bar {
+    gap: 12px;
+    padding: 12px max(4vw, 16px);
+    padding-top: calc(12px + env(safe-area-inset-top, 0px));
+  }
+  .brand { font-size: 12px; letter-spacing: 0.3em; }
+  .top-search { order: 3; flex-basis: 100%; max-width: none; }
+  .top-actions { order: 2; margin-left: auto; gap: 8px; }
+  .hero { padding-top: calc(170px + env(safe-area-inset-top, 0px)); }
+  .error-banner { top: 130px; }
+}
+
 @media (max-width: 600px) {
   .wrap { padding: 0 4vw; }
   .hero-loc .city { font-size: 18px; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 24px 16px; }
   .nearby-cards { grid-template-columns: 1fr; }
   .season-panel { padding: 24px 20px; }
+  .season-chart-wrap { height: 200px; }
   .hud-panel { padding: 24px 20px; }
-  .rate { font-size: clamp(56px, 15vw, 88px); }
-  .rate-unit { margin-left: 10px; font-size: 0.22em; }
   .peak-badge { gap: 8px; }
   .top-search-btn { padding: 8px 12px; font-size: 9px; }
-  .bar-chart-hero { height: 160px; }
+  .bar-chart-hero { height: 140px; }
+  .chart-head { margin-bottom: 16px; }
+  section.sec { padding: 0 0 80px; }
 }
 </style>
 </head>
@@ -713,7 +773,7 @@ body.loaded .reveal { opacity: 1; transform: translateY(0); }
         <line x1="20" y1="68" x2="80" y2="32"/>
       </svg>
     </div>
-    <div class="boot-logo">SNOWFALL</div>
+    <div class="boot-logo">POWDER</div>
     <div class="boot-tagline">Live Snow Report</div>
     <div class="boot-bar-wrap"><div class="boot-bar" id="bootBar"></div></div>
     <div class="boot-status" id="bootStatus">Starting up…</div>
@@ -726,7 +786,7 @@ body.loaded .reveal { opacity: 1; transform: translateY(0); }
 </div>
 
 <header class="top-bar">
-  <div class="brand">SNOWFALL</div>
+  <div class="brand">POWDER</div>
   <div class="top-search">
     <input type="text" id="city" class="top-search-input" placeholder="Search a city…" autocomplete="off" aria-label="Search for a city">
     <button type="button" id="locationBtn" class="icon-btn" aria-label="Use my location" title="Use my location">
@@ -762,6 +822,9 @@ body.loaded .reveal { opacity: 1; transform: translateY(0); }
         <div class="hero-loc">
           <span class="micro">Current Location</span>
           <span class="city" id="locName">—</span>
+          <button type="button" class="back-to-location" id="backToLocationBtn">
+            ← <span id="backToLocationName">BACK</span>
+          </button>
           <span class="date" id="date">—</span>
         </div>
       </div>
@@ -925,7 +988,7 @@ body.loaded .reveal { opacity: 1; transform: translateY(0); }
 
 <footer class="reveal delay-5">
   <div class="wrap foot">
-    <span>SNOWFALL · V4 — Data via Open-Meteo / NWS</span>
+    <span>POWDER · V4 — Data via Open-Meteo / NWS</span>
     <span id="footstamp">—</span>
   </div>
 </footer>
@@ -951,6 +1014,7 @@ const CONFIG = {
 const appState = {
   currentCity: null,
   currentWeatherData: null,
+  parentLocation: null,   // { data, name } — set when user clicks a nearby card
   units: 'imperial',
   isSearching: false,
   resultCache: new Map(),
@@ -977,31 +1041,26 @@ const units = {
       ? { value: (meters * 100).toFixed(1), unit: 'CM' }
       : { value: (meters * 39.3701).toFixed(1), unit: 'IN' };
   },
-
   snowfall(cm) {
     return this.isMetric()
       ? { value: cm.toFixed(1), unit: 'CM' }
       : { value: (cm / 2.54).toFixed(1), unit: 'IN' };
   },
-
   rate(cmPerHour) {
     return this.isMetric()
       ? { value: cmPerHour.toFixed(2), unit: 'CM/HR' }
       : { value: (cmPerHour / 2.54).toFixed(2), unit: 'IN/HR' };
   },
-
   temp(celsius) {
     return this.isMetric()
       ? { value: Math.round(celsius), unit: '°C' }
       : { value: Math.round(celsius * 9 / 5 + 32), unit: '°F' };
   },
-
   wind(kmh) {
     return this.isMetric()
       ? { value: Math.round(kmh), unit: 'KM/H' }
       : { value: Math.round(kmh / 1.60934), unit: 'MPH' };
   },
-
   cmToInches(cm) { return (cm || 0) / 2.54; },
 
   refreshUnitLabels() {
@@ -1257,12 +1316,13 @@ const riskCalculator = {
    ═══════════════════════════════════════════════════════ */
 const screen = {
   el: {},
+  _tickerBaseHtml: '',
 
   findElements() {
     const ids = [
       'depth', 'rate', 'temp', 'chill', 'wind',
       't24', 't48', 'n24', 'n72', 'seasonBig',
-      'locName', 'date', 'navCity',
+      'locName', 'date',
       'hourly', 'area', 'probs', 'tickerText',
       'row-rate', 'row-temp', 'row-chill', 'row-wind',
       'peakValue', 'peakTime', 'peakSeverity',
@@ -1270,7 +1330,8 @@ const screen = {
       'seasonDelta', 'liveBadge', 'liveText', 'updatedAt',
       'heroBarChart', 'clearWeatherBanner',
       'unitToggle', 'heroContainer', 'timelineContainer',
-      'seasonContainer', 'area'
+      'seasonContainer',
+      'backToLocationBtn', 'backToLocationName'
     ];
     ids.forEach(id => { this.el[id] = document.getElementById(id); });
 
@@ -1299,6 +1360,14 @@ const screen = {
         weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
       }).toUpperCase() + ' // ' +
       new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    // Show/hide "Back to [parent]" chip
+    if (appState.parentLocation) {
+      this.el.backToLocationBtn.classList.add('visible');
+      this.el.backToLocationName.textContent = `BACK TO ${appState.parentLocation.name.toUpperCase()}`;
+    } else {
+      this.el.backToLocationBtn.classList.remove('visible');
+    }
 
     const depthMeters = hourly.snow_depth[hourIdx] || 0;
     const rateCm = hourly.snowfall[hourIdx] || 0;
@@ -1364,6 +1433,8 @@ const screen = {
   },
 
 
+  /* ────────── TICKER — measures and duplicates to fill viewport ────────── */
+
   renderTicker(risk, hourly, hourIdx, current) {
     const items = [];
 
@@ -1384,11 +1455,34 @@ const screen = {
     items.push(`<span class="ticker-item">WIND CHILL ${chillFmt.value}${chillFmt.unit}</span>`);
 
     items.push(`<span class="ticker-item friendly">${severity.advice(risk.level)}</span>`);
-
     items.push(`<span class="ticker-item">///</span>`);
 
-    const html = items.join('');
-    this.el.tickerText.innerHTML = html + html;
+    this._tickerBaseHtml = items.join('');
+    this._fillTicker();
+  },
+
+  /** Measure the single-cycle width and repeat enough times to fill 2× viewport seamlessly */
+  _fillTicker() {
+    const baseHtml = this._tickerBaseHtml;
+    if (!baseHtml) return;
+    const el = this.el.tickerText;
+
+    // Step 1: render one copy and measure it
+    el.innerHTML = baseHtml;
+    const singleWidth = el.scrollWidth;
+    if (!singleWidth) return;
+
+    // Step 2: figure out how many copies are needed so that
+    //         (copies × singleWidth) / 2 ≥ viewport width.
+    //         We round to the nearest even number so the -50% animation
+    //         lands exactly at a copy boundary.
+    const viewportWidth = window.innerWidth;
+    let needed = Math.ceil((viewportWidth * 2) / singleWidth) + 1;
+    if (needed % 2 !== 0) needed += 1;
+    needed = Math.max(needed, 2);
+
+    // Step 3: render the final content
+    el.innerHTML = baseHtml.repeat(needed);
   },
 
   findPeakWindow(hourly, hourIdx) {
@@ -1588,7 +1682,7 @@ const screen = {
     const level = severity.fromTotal(inches);
     const statEl = this.el.n24Stat;
     statEl.classList.remove('severity-low', 'severity-moderate', 'severity-severe');
-    statEl.classList.add(severity.cssClass(level));
+    if (level !== 'none') statEl.classList.add(severity.cssClass(level));
     const sevBadge = this.el.n24Severity;
     sevBadge.className = 'stat-sev ' + severity.cssClass(level);
     sevBadge.textContent = severity.label(level);
@@ -1706,16 +1800,20 @@ const screen = {
       unitLabel: units.isMetric() ? 'cm' : 'in'
     }));
 
-    const maxValue = Math.max(...displayed.map(s => s.displayValue), 1) * 1.15;
+    // 25% headroom so bar value labels never collide with the top
+    const maxValue = Math.max(...displayed.map(s => s.displayValue), 1) * 1.25;
     const barWidth = (canvas.clientWidth - 64) / displayed.length;
+    const topInfoHeight = 20;
+    const bottomLabelHeight = 30;
+    const chartHeight = canvas.clientHeight - topInfoHeight - bottomLabelHeight;
 
     ctx.font = '10px ui-monospace';
     ctx.textAlign = 'center';
 
     displayed.forEach((season, i) => {
-      const barHeight = (season.displayValue / maxValue) * (canvas.clientHeight - 60);
+      const barHeight = (season.displayValue / maxValue) * chartHeight;
       const x = 32 + i * barWidth + barWidth * 0.15;
-      const y = canvas.clientHeight - 30 - barHeight;
+      const y = canvas.clientHeight - bottomLabelHeight - barHeight;
 
       ctx.fillStyle = season.current ? '#1a5276' : '#b0bcc6';
       ctx.fillRect(x, y, barWidth * 0.7, barHeight);
@@ -1735,7 +1833,7 @@ const screen = {
 
     const past = displayed.filter(s => !s.current);
     const average = past.length ? past.reduce((sum, s) => sum + s.displayValue, 0) / past.length : 0;
-    const avgY = canvas.clientHeight - 30 - (average / maxValue) * (canvas.clientHeight - 60);
+    const avgY = canvas.clientHeight - bottomLabelHeight - (average / maxValue) * chartHeight;
 
     ctx.strokeStyle = '#0b2d4a';
     ctx.setLineDash([5, 5]);
@@ -1747,11 +1845,12 @@ const screen = {
     ctx.setLineDash([]);
     ctx.lineWidth = 1;
 
+    // Average label moved to TOP of canvas — no more collision with bar value labels
+    const avgUnit = units.isMetric() ? 'cm' : 'in';
     ctx.fillStyle = '#0b2d4a';
     ctx.textAlign = 'left';
     ctx.font = '9px ui-monospace';
-    const avgUnit = units.isMetric() ? 'cm' : 'in';
-    ctx.fillText(`5-SEASON AVG ${average.toFixed(1)} ${avgUnit}`, 32, avgY - 6);
+    ctx.fillText(`5-SEASON AVG: ${average.toFixed(1)} ${avgUnit}`, 32, 12);
 
     const currentValue = displayed[displayed.length - 1].displayValue;
     const pctChange = average ? Math.round(((currentValue - average) / average) * 100) : 0;
@@ -1912,8 +2011,13 @@ function showError(message) {
   showError._timer = setTimeout(() => banner.classList.remove('visible'), 4500);
 }
 
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 async function loadCity(cityName) {
   if (appState.isSearching) return;
+  appState.parentLocation = null;   // fresh search — no back option
   setLoading(true, 'SEARCHING');
   screen.el.locName.textContent = 'LOADING…';
 
@@ -1924,6 +2028,7 @@ async function loadCity(cityName) {
     appState.lastFetchedAt = Date.now();
     hydrateHourlyCache(data.forecast.hourly);
     screen.renderWeatherReport(data);
+    scrollToTop();   // FIX #10
   } catch (err) {
     if (err.name === 'AbortError') return;
     console.error(err);
@@ -1938,6 +2043,15 @@ async function loadCity(cityName) {
 
 async function loadCoordinates(lat, lon, displayName) {
   if (appState.isSearching) return;
+
+  // FIX #11: remember where we came from (only the first time, so "Back" always returns to the original)
+  if (appState.currentWeatherData && !appState.parentLocation) {
+    appState.parentLocation = {
+      data: appState.currentWeatherData,
+      name: appState.currentWeatherData.location.name
+    };
+  }
+
   setLoading(true, 'SEARCHING');
   screen.el.locName.textContent = 'LOADING…';
 
@@ -1947,6 +2061,7 @@ async function loadCoordinates(lat, lon, displayName) {
     appState.lastFetchedAt = Date.now();
     hydrateHourlyCache(data.forecast.hourly);
     screen.renderWeatherReport(data);
+    scrollToTop();   // FIX #10
   } catch (err) {
     if (err.name === 'AbortError') return;
     console.error(err);
@@ -1970,6 +2085,18 @@ async function useMyLocation() {
     return;
   }
   await loadCoordinates(loc.lat, loc.lon, 'Your location');
+}
+
+/** FIX #11: restore the parent location from the "Back" chip */
+function returnToParentLocation() {
+  if (!appState.parentLocation) return;
+  const parent = appState.parentLocation;
+  appState.parentLocation = null;
+  appState.currentWeatherData = parent.data;
+  appState.lastFetchedAt = Date.now();
+  hydrateHourlyCache(parent.data.forecast.hourly);
+  screen.renderWeatherReport(parent.data);
+  scrollToTop();
 }
 
 
@@ -2052,11 +2179,7 @@ async function runBootSequence() {
 
 
 /* ═══════════════════════════════════════════════════════
-   ANIMATED TRIANGLE BACKGROUND
-   ── Restored VERBATIM from the original file ──
-   Same IIFE, same variable names (TONES, m, r, c), same
-   string concatenation, same 3-layer staggered animation.
-   Output is byte-for-byte identical SVG.
+   ANIMATED TRIANGLE BACKGROUND — verbatim from original
    ═══════════════════════════════════════════════════════ */
 (function() {
   const svg = document.getElementById('tris-svg');
@@ -2125,6 +2248,7 @@ function initializeApp() {
   });
 
   document.getElementById('locationBtn').addEventListener('click', useMyLocation);
+  document.getElementById('backToLocationBtn').addEventListener('click', returnToParentLocation);
 
   document.querySelectorAll('.preset').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -2157,9 +2281,11 @@ function initializeApp() {
     if (appState.currentWeatherData) {
       screen.drawSeasonComparison(appState.currentWeatherData.history.seasons);
     }
+    // Re-fill ticker so it always covers the new viewport width
+    screen._fillTicker();
   });
 
-  // Pause triangle animation while scrolling (perf) — original behavior
+  // Pause triangle animation while scrolling
   let scrollTimer;
   window.addEventListener('scroll', () => {
     if (!document.body.classList.contains('is-scrolling')) {
