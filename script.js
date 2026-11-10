@@ -466,11 +466,11 @@ const weatherApi = {
     for (let yearsAgo = 5; yearsAgo >= 0; yearsAgo--) {
       const seasonStart = seasonStartYear - yearsAgo;
       const rangeStart = `${seasonStart}-10-01`;
-      const rangeEnd = new Date(
-        cutoff.getFullYear() - yearsAgo,
-        cutoff.getMonth(),
-        cutoff.getDate()
-      ).toISOString().slice(0, 10);
+      // Past seasons run their full length. Current season runs to "now"
+// so the "this season so far" comparison stays honest.
+const rangeEnd = yearsAgo === 0
+  ? cutoff.toISOString().slice(0, 10)
+  : `${seasonStart + 1}-05-31`;
 
       let centimeters = 0;
       historyData.daily.time.forEach((dateString, i) => {
